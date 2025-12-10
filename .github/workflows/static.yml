@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GYSV — Ultra Advanced Single-Page Fake Job & Offer Letter Detector</title>
+
+<!-- pdf.js CDN for client-side PDF extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+
+<style>
+:root{
+  --bg: #f2f8ff;
+  --card: #ffffff;
+  --accent: #1a73e8;
+  --muted: #6b7a86;
+  --text: #0f2b3d;
+  --critical: #e53935;
+  --high: #ff8f00;
+  --medium: #ffd54f;
+  --low: #81c784;
+  --radius: 12px;
+}
+  .controls button.small{
+  background: var(--accent);
+  color: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s;
+}
+.controls button.small:hover{
+  background: #0d47a1;
+}
+.controls input#companyName{
+  flex:1;
+  min-width:160px;
+}
+
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#ffffff 70%);color:var(--text);padding:18px;}
+.container{max-width:1100px;margin:0 auto}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,var(--accent),#0f5fc9);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
+.title{font-weight:800;font-size:18px}
+.subtitle{font-size:13px;color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 24px rgba(16,40,60,0.06)}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+textarea{width:100%;min-height:180px;border-radius:10px;border:1px solid #e6eef6;padding:12px;font-size:14px;background:#fbfeff}
+input[type="file"]{display:block;margin-top:8px}
+button{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+.btn-ghost{background:transparent;border:1px solid #e6eef6;color:var(--accent);font-weight:700;padding:8px 12px;border-radius:10px}
+.small{padding:8px 10px;font-size:13px}
+.result{margin-top:12px;padding:12px;border-radius:10px;background:#fcfeff;border:1px dashed #e6eef6}
+.badge{display:inline-block;padding:8px 10px;border-radius:8px;font-weight:800;color:white}
+.badge.critical{background:var(--critical)}
+.badge.high{background:var(--high);color:#07110b}
+.badge.medium{background:var(--medium);color:#07110b}
+.badge.low{background:var(--low);color:#07320b}
+
+.kv{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.kv .item{min-width:120px;background:#fbfcff;padding:8px;border-radius:8px;border:1px solid #f0f6fb}
+
+.highlight-critical{background:rgba(229,57,53,0.14);border-radius:4px;padding:0 3px}
+.highlight-high{background:rgba(255,143,0,0.12);border-radius:4px;padding:0 3px}
+.highlight-medium{background:rgba(255,213,79,0.12);border-radius:4px;padding:0 3px}
+.highlight-low{background:rgba(129,199,132,0.12);border-radius:4px;padding:0 3px}
+
+.keyword-list{max-height:220px;overflow:auto;padding:8px;border-radius:8px;border:1px solid #f0f6fb;background:#fff}
+.keyword-row{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px dashed #f0f6fb}
+.keyword-row:last-child{border-bottom:0}
+.keyword-term{font-weight:700}
+.keyword-cat{font-size:12px;color:var(--muted);margin-left:auto}
+.severity-dot{width:12px;height:12px;border-radius:50%}
+
+.progress{height:14px;background:#eef6ff;border-radius:999px;overflow:hidden}
+.progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#0d47a1)}
+
+.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+.search{display:flex;gap:8px;margin-bottom:8px}
+.toggle-cat{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.toggle-cat label{display:flex;gap:6px;align-items:center;padding:6px;border-radius:8px;border:1px solid #eef6ff;background:#fbfeff;font-size:13px}
+.btn-export{background:#0f9d58;color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+
+/* small screens adjustments */
+@media(max-width:600px){
+  .header{flex-direction:column;align-items:flex-start;gap:6px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">G</div>
+      <div>
+        <div class="title">GYaaNa SAroVar (GYSV)</div>
+        <div class="subtitle">Single-page — Keyword-driven Fake Job & Offer Letter Detector (India)</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-weight:700">Local detection</div>
+      <div style="font-size:12px;color:var(--muted)">All checks run in your browser</div>
+    </div>
+  </div>
+  <h2>Welcome to GYSV</h2>
+      <p>This tool helps you detect fake job postings and suspicious offer letters in India. All checks run locally in your browser. Navigate to the "Job Description Analyzer" page to paste job postings or upload offer letters for analysis.</p>
+      <p>⚠️ Important: This is a keyword-based heuristic tool. Always verify company details, official emails, and documents before taking any action.</p>
+      <p>You can also search companies quickly using Google, LinkedIn, Indeed, FoundIt, and Glassdoor from the analyzer page.</p>
+    </div>
+
+  <div class="grid">
+    <!-- MAIN -->
+    <div class="card">
+      <h3>Job Description Analyzer</h3>
+      <div class="search">
+        <input id="searchInput" placeholder="Search matched keywords or explanation..." style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef6" />
+        <button class="btn-ghost small" onclick="filterHistory()">Filter</button>
+        <button class="btn-ghost small" onclick="renderHistory()">Reset</button>
+      </div>
+
+      <label style="font-weight:700">Paste job description</label>
+      <textarea id="jobText" placeholder="Paste job description or offer letter text here..."></textarea>
+
+      <div style="margin-top:10px" class="controls">
+        <button onclick="runAnalysis()">Analyze</button>
+        <button class="btn-ghost small" onclick="pasteExample()">Paste Example</button>
+        <button class="btn-ghost small" onclick="clearInput()">Clear</button>
+        <button class="btn-export" onclick="downloadLastReport()">Download Last Report</button>
+      </div>
+
+      <div id="analysisResult" class="result" style="display:none"></div>
+
+      <h4 style="margin-top:16px">Offer Letter Upload</h4>
+      <input id="offerFile" type="file" accept=".pdf,.txt" />
+      <div style="margin-top:8px">
+        <button onclick="analyzeOffer()">Analyze Offer Letter</button>
+        <button class="btn-ghost small" onclick="clearOffer()">Clear Offer</button>
+      </div>
+      <div id="offerResult" class="result" style="display:none"></div>
+    </div>
+   
+
+    <!-- SIDE -->
+    <aside class="card" aria-label="Side Controls">
+      <h4>Keyword Pack (Flat list — 150+ items)</h4>
+      <div style="margin-top:8px;font-size:13px;color:var(--muted)">
+        Flat list means keywords are not grouped. Severity is auto-assigned by heuristic.
+      </div>
+
+      <div style="margin-top:10px" id="keywordsPanel" class="keyword-list"></div>
+
+      <div style="margin-top:12px">
+        <strong>History</strong>
+        <div id="historyList" style="max-height:160px;overflow:auto;margin-top:8px"></div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn-ghost small" onclick="clearHistory()">Clear History</button>
+          <button class="btn small" onclick="downloadHistory()">Download History</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="kv">
+        <div class="item" style="padding:8px">
+          <div style="font-size:12px;color:var(--muted)">Last Score</div>
+          <div id="lastScore" style="font-weight:800">—</div>
+        </div>
+        <div class="item" style="padding:8px">
+          <div style="font-size:12px;color:var(--muted)">Last Verdict</div>
+          <div id="lastVerdict" style="font-weight:800">—</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+ <!-- Company Quick Search -->
+<div style="margin-top:16px">
+  <h4>Company Quick Search</h4>
+  <div class="controls" style="flex-wrap:wrap;">
+    <input id="companyName" type="text" placeholder="Enter company name..." style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef6" />
+    <button class="btn small" onclick="quickSearch('google')">Google</button>
+    <button class="btn small" onclick="quickSearch('linkedin')">LinkedIn</button>
+    <button class="btn small" onclick="quickSearch('indeed')">Indeed</button>
+    <button class="btn small" onclick="quickSearch('foundit')">FoundIt</button>
+    <button class="btn small" onclick="quickSearch('glassdoor')">Glassdoor</button>
+  </div>
+</div>
+  <div class="footer">© 2025 GYSV — All Rights Reserved. This detection uses heuristics and keyword scoring. Always verify with official sources.</div>
+</div>
+  
+
+
+
+<script>
+/* ---------------------------
+  FLAT KEYWORD PACK (150+ items)
+  This is a flat list of strings (no categories). We'll map to severity heuristically.
+----------------------------*/
+const KEYWORDS_FLAT = [
+  "registration fee","training fee","security deposit","consultancy charge","processing fee",
+  "refund after joining","paytm","google pay","phonepe","upi id","account number","ifsc",
+  "vague responsibilities","no experience required","easy money","earn from home","work from home and earn",
+  "get rich","no interview","immediate joining","apply immediately","urgent hiring","bond",
+  "signed stamp","company stamp","offer letter","whatsapp only","telegram","contact on whatsapp",
+  "gmail","hotmail","official domain","data entry","easy work","pan card photo","aadhar",
+  "bank passbook","photo of cheque","upload documents","payment required","interview fee",
+  "placement fee","pre-placement","no salary mentioned","ctc","per annum","assured selection",
+  "100% selection","no interview required","personal email","hr gmail","net banking","bank transfer",
+  "work from home 50k","get rich quick","easy money online","remote earning","apply now earn upto",
+  "send money","pay to join","pay now","recruitment agency","consultant","job portal link",
+  "training required before joining","pay before start","send documents and money","no office address",
+  "company not found","unverified domain","test payment","security code","screenshot of transfer",
+  "registration charges","joining fee","placement charges","interview deposit","document verification fee",
+  "fee to attend","advance payment","bank details required","upi transfer","pay before interview",
+  "fee refund","certificate fee","visa sponsorship fee","send money to account","transaction screenshot",
+  "pay application fee","fee charged","fake stamp","fake signature","notices","court order",
+  "guaranteed job","pay per interview","company registration","gst number","pan verification",
+  "pay to proceed","payment link","send to upi","sms only","no official website","fake company",
+  "no domain email","advance fee","pay and join","pay registration","apply and pay","money transfer",
+  "transaction id","bank a/c","fee invoice","otp","one-time password","security pin","upi pin",
+  "transfer screenshot","provide passbook","share pan","share aadhar","passport scan","passport copy",
+  "scan and send","photo id","image of cheque","bank statement","salary deposit","salary hold",
+  "withdrawal request","test transfer","account verification","account activation fee","charge to join",
+  "certificate payment","training charges","recruitment charges","placement charges required","payment gateway",
+  "payment portal","refund promise","fake hr","fake recruiter","hr from mnc","work from home urgent",
+  "no office visit","video interview not required","skype only","zoom only","only whatsapp conversation",
+  "only call","call or whatsapp","contact on telegram","apply via message","apply via whatsapp",
+  "apply via telegram","direct transfer","send rupees","rupees transfer","instant joining","join today",
+  "limited seats","only few openings","act fast","act now","last date today","deadline today",
+  "pay now to confirm","secure your seat by paying","booking fee","booking charges","application charges",
+  "fee for background check","background check fee","document fee","verification fee","manual processing fee",
+  "processing charges","security clearance fee","police verification fee","police verification charges",
+  "courier fee","shipping fee","visa processing fee","visa charges","ticket charges","travel advance",
+  "travel deposit","ticket booking fee","atm transfer","netbanking transfer","bank deposit required",
+  "collect transfer screenshot","send screen shot","send transaction screenshot","send transfer proof",
+  "paytm id given","transfer to paytm","googlepay id","phonepe id","payu payment","razorpay link","external payment",
+  "payment outside platform","third party payment","middleman charges","agent charges","agent commission",
+  "agent fee","recruiter fee","guaranteed placement","placement guaranteed","no selection criteria",
+  "no assessment","no HR check","no verification","only whatsapp selection","selected without interview",
+  "selected immediately","selection confirmed","appointment letter pending","appointment letter after payment",
+  "offer after payment","joining after payment","complete formalities after payment","certificate after payment",
+  "certificate on payment","certificate issuance fee","fake invoice","invoice for candidate","pay invoice",
+  "pay to process application","pay for interview pass","pay for onboarding","pay to proceed with offer",
+  "fake website","clone website","spoofed website","impersonated company","scam company","fake recruitment",
+  "fake job posting","suspicious recruiter","suspicious email","suspicious whatsapp","suspicious offer",
+  "urgent response required","respond immediately","respond now","no time to verify","limited time offer"
+];
+// (Above list has 160+ entries — flat set requested)
+/* severity heuristics: if a term contains these keywords assign higher severity */
+const SEVERITY_KEYWORDS = {
+  critical: ["fee","pay","send","transfer","upi","account","bank","paytm","googlepay","payu","razorpay","transaction","otp","one-time password","pin","passbook","cheque","aadhar","pan","passport","pay now","advance","pay before","pay to","registration charges","joining fee","interview fee","placement fee","test payment","security code"],
+  high: ["urgent","immediate","no interview","guaranteed","selected","confirm","apply now","act now","deadline","limited seats","join today","video interview not required","whatsapp only","telegram","contact on whatsapp"],
+  medium: ["certificate","training","bond","bond terms","company stamp","signed stamp","gst","mca","consultant","agent","recruiter"],
+  low: ["gmail","hotmail","ctc","per annum","job portal link","company registration","official domain"]
+};
+const SEVERITY_WEIGHT = {critical: 10, high: 6, medium: 3, low: 1};
+/* Build keyword objects from flat list */
+const KEYWORDS = KEYWORDS_FLAT.map(t => {
+  const lower = t.toLowerCase();
+  // determine severity by heuristics
+  let severity = "low";
+  for(const s of Object.keys(SEVERITY_KEYWORDS)){
+    for(const w of SEVERITY_KEYWORDS[s]){
+      if(lower.includes(w)) { severity = s; break; }
+    }
+    if(severity !== "low" && SEVERITY_KEYWORDS[severity].some(x=>lower.includes(x))) break;
+  }
+  return { term: t, category: "General", severity, explanation: "Flat-list match — exercise caution and verify." };
+});
+/* state */
+let lastReport = null;
+let history = JSON.parse(localStorage.getItem('gysv_history_v1') || "[]");
+/* Utility functions */
+function severityColor(s){
+  if(s==='critical') return getComputedStyle(document.documentElement).getPropertyValue('--critical') || '#e53935';
+  if(s==='high') return getComputedStyle(document.documentElement).getPropertyValue('--high') || '#ff8f00';
+  if(s==='medium') return getComputedStyle(document.documentElement).getPropertyValue('--medium') || '#ffd54f';
+  return getComputedStyle(document.documentElement).getPropertyValue('--low') || '#81c784';
+}
+function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+/* Build keywords panel (flat list display) */
+function buildKeywordPanel(){
+  const panel = document.getElementById('keywordsPanel');
+  panel.innerHTML = '';
+  KEYWORDS.forEach(k=>{
+    const row = document.createElement('div');
+    row.className = 'keyword-row';
+    const dot = document.createElement('div');
+    dot.className = 'severity-dot';
+    dot.style.background = severityColor(k.severity);
+    dot.title = k.severity.toUpperCase();
+    const term = document.createElement('div');
+    term.className = 'keyword-term';
+    term.textContent = k.term;
+    const catSpan = document.createElement('div');
+    catSpan.className = 'keyword-cat';
+    catSpan.textContent = `${capitalize(k.severity)}`;
+    row.appendChild(dot);
+    row.appendChild(term);
+    row.appendChild(catSpan);
+    panel.appendChild(row);
+  });
+}
+/* Example paste */
+function pasteExample(){
+  const sample = `Position: Customer Support Executive
+We are hiring immediate joining candidates. No experience required. Training fee of ₹500 will be charged. Apply by sending money to paytm id 9876543210. Work from home and earn good money. Contact: hr@gmail.com
+Responsibilities: Answer customer queries via phone and email.`;
+  document.getElementById('jobText').value = sample;
+}
+/* Clear input */
+function clearInput(){
+  document.getElementById('jobText').value = '';
+  document.getElementById('analysisResult').style.display = 'none';
+}
+/* Offer clear */
+function clearOffer(){
+  document.getElementById('offerFile').value = '';
+  document.getElementById('offerResult').style.display = 'none';
+}
+/* MAIN: runAnalysis */
+function runAnalysis(){
+  const text = (document.getElementById('jobText').value || '').trim();
+  if(!text){ alert('Paste job description first'); return; }
+  processText(text, 'job');
+}
+/* Process text (job or offer) */
+function processText(text, source='job'){
+  const lower = text.toLowerCase();
+  // find matches
+  const matches = [];
+  for(const k of KEYWORDS){
+    // escape term for regex
+    const escaped = k.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    // \b boundaries might not work well with terms containing spaces/punctuation; use lookarounds for word chars
+    const re = new RegExp(`(^|\\W)(${escaped})(?=\\W|$)`, 'ig');
+    let m;
+    while((m = re.exec(lower)) !== null){
+      matches.push({term:k.term, category:k.category, severity:k.severity, explanation:k.explanation, index:m.index, length:m[0].length});
+      // avoid infinite loops
+      if(re.lastIndex === m.index) re.lastIndex++;
+    }
+  }
+  // aggregate by term
+  const agg = {};
+  matches.forEach(mt=>{
+    const key = mt.term;
+    agg[key] = agg[key] || {count:0, category:mt.category, severity:mt.severity, explanation:mt.explanation};
+    agg[key].count++;
+  });
+  // scoring
+  let rawScore = 0;
+  Object.values(agg).forEach(a=>{
+    rawScore += (SEVERITY_WEIGHT[a.severity] || 1) * a.count;
+  });
+  // normalize to 0-100 using a heuristic: typical max ~ (unique matches * 10). Use clamp.
+  const maxPossible = Math.max(1, Object.keys(agg).length * 10);
+  let score = Math.round(Math.min(100, (rawScore / maxPossible) * 100));
+  // boost if many critical hits
+  const criticalCount = Object.values(agg).filter(a=>a.severity==='critical').reduce((s,v)=>s+v.count,0);
+  if(criticalCount >= 3) score = Math.max(score, 90);
+  else if(criticalCount === 2) score = Math.max(score, 80);
+  else if(criticalCount === 1) score = Math.max(score, 65);
+  // Determine level
+  let level = 'Low';
+  if(score >= 85) level = 'Critical';
+  else if(score >= 65) level = 'High';
+  else if(score >= 35) level = 'Medium';
+  // highlight text by severity (replace longest term first)
+  let highlightedHtml = escapeHtml(text);
+  const uniqueMatchTerms = Object.keys(agg).sort((a,b)=>b.length - a.length);
+  for(const term of uniqueMatchTerms){
+    const info = agg[term];
+    const cls = info.severity === 'critical' ? 'highlight-critical'
+              : info.severity === 'high' ? 'highlight-high'
+              : info.severity === 'medium' ? 'highlight-medium'
+              : 'highlight-low';
+    // global case-insensitive replace
+    const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'ig');
+    highlightedHtml = highlightedHtml.replace(re, `<span class="${cls}">$&</span>`);
+  }
+  // matched list
+  const matchedList = Object.keys(agg).map(k=>{
+    return {term:k, count:agg[k].count, category:agg[k].category, severity:agg[k].severity, explanation:agg[k].explanation};
+  }).sort((a,b)=> (SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity]) || (b.count - a.count) );
+  // suggestions
+  const suggestions = [];
+  if(level === 'Critical') {
+    suggestions.push('Do NOT proceed. Do not share bank/UPI/PAN/Aadhaar documents or make any payments.');
+    suggestions.push('Verify company details on LinkedIn, official website, and government databases (MCA/GST).');
+    suggestions.push('If you already paid, contact your bank immediately and report the transaction.');
+  } else if(level === 'High') {
+    suggestions.push('Proceed with extreme caution. Ask for company domain email, office address, and signed contract.');
+    suggestions.push('Request an in-person or video interview with the hiring manager and verify identity.');
+  } else if(level === 'Medium') {
+    suggestions.push('Ask for a clearer JD, salary & reporting manager. Verify company website and LinkedIn profiles.');
+  } else {
+    suggestions.push('Looks okay by keyword signals, but verify key signals like official email domain, salary clarity and interview process.');
+  }
+  // build report
+  const report = {
+    source,
+    analyzed_at: new Date().toISOString(),
+    score,
+    level,
+    matched_count: matchedList.length,
+    critical_count: criticalCount,
+    matches: matchedList,
+    suggestions,
+    highlighted_html: highlightedHtml,
+    excerpt: text.slice(0, 1500)
+  };
+  // display & save
+  displayReport(report);
+  lastReport = report;
+  history.unshift(report);
+  if(history.length > 120) history.pop();
+  localStorage.setItem('gysv_history_v1', JSON.stringify(history));
+  renderHistory();
+}
+/* Display the report to user */
+function displayReport(r){
+  const el = document.getElementById('analysisResult');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:12px;color:var(--muted)">Risk Score</div>
+        <div style="font-size:28px;font-weight:800">${r.score}%</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--muted)">Risk Level</div>
+        <div style="font-weight:800">${r.level} ${r.level === 'Critical' ? '<span class="badge critical">CRITICAL</span>' : r.level === 'High' ? '<span class="badge high">HIGH</span>' : r.level === 'Medium' ? '<span class="badge medium">MEDIUM</span>' : '<span class="badge low">LOW</span>' }</div>
+        <div style="margin-top:6px;color:var(--muted)">${r.suggestions.join(' · ')}</div>
+      </div>
+      <div style="min-width:160px">
+        <div style="font-size:12px;color:var(--muted)">Matched Keywords</div>
+        <div style="font-weight:800">${r.matched_count}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="kv">
+      <div class="item">Critical hits: ${r.critical_count}</div>
+      <div class="item">Analyzed: ${new Date(r.analyzed_at).toLocaleString()}</div>
+    </div>
+    <div style="margin-top:12px">
+      <strong>Highlighted Text</strong>
+      <div style="margin-top:8px;padding:12px;border-radius:8px;background:#fff;border:1px solid #f0f6fb">${r.highlighted_html}</div>
+    </div>
+    <div style="margin-top:12px">
+      <strong>Matched Keywords & Explanations</strong>
+      <div style="margin-top:8px">
+      ${r.matches.map(m=>`
+        <div style="padding:8px;border-radius:8px;border:1px solid #f0f6fb;margin-bottom:6px;display:flex;gap:8px;align-items:center">
+          <div style="width:10px;height:10px;border-radius:50%;background:${severityColor(m.severity)}"></div>
+          <div style="flex:1">
+            <div style="font-weight:800">${m.term}</div>
+            <div style="font-size:13px;color:var(--muted)">${m.explanation}</div>
+          </div>
+          <div style="min-width:60px;text-align:right;font-weight:800">${m.count}×</div>
+        </div>
+      `).join('')}
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button onclick="downloadReport(JSON.parse(localStorage.getItem('gysv_last_report') || '{}') )" class="btn-ghost small">Download Explanation</button>
+      <button onclick="copyReport()" class="btn-ghost small">Copy Summary</button>
+      <button onclick="openTips()" class="btn-ghost small">Safety Tips</button>
+    </div>
+  `;
+  // store last report for quick download
+  localStorage.setItem('gysv_last_report', JSON.stringify(r));
+  document.getElementById('lastScore').textContent = r.score + '%';
+  document.getElementById('lastVerdict').textContent = r.level;
+}
+/* Copy summary to clipboard */
+function copyReport(){
+  if(!lastReport) { alert('No report'); return; }
+  const t = `GYSV Report — ${lastReport.level} — Score ${lastReport.score}%\nMatched: ${lastReport.matched_count}\nSuggestions: ${lastReport.suggestions.join('; ')}`;
+  navigator.clipboard.writeText(t).then(()=> alert('Summary copied'));
+}
+/* Download a single report */
+function downloadReport(obj){
+  const data = obj || lastReport;
+  if(!data){ alert('No report'); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gysv-report-${new Date().toISOString()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+/* Download last report wrapper */
+function downloadLastReport(){
+  const data = JSON.parse(localStorage.getItem('gysv_last_report') || 'null');
+  if(!data) { alert('No last report to download'); return; }
+  downloadReport(data);
+}
+/* History UI */
+function renderHistory(){
+  const h = document.getElementById('historyList');
+  h.innerHTML = history.slice(0,30).map(item=>{
+    return `<div style="padding:8px;border-bottom:1px dashed #f0f6fb">
+      <div style="font-weight:800">${new Date(item.analyzed_at).toLocaleString()}</div>
+      <div style="font-size:13px;color:var(--muted)">${item.level} — ${item.score}% — ${item.matches.map(m=>m.term).slice(0,6).join(', ')}</div>
+    </div>`;
+  }).join('');
+}
+/* Clear history */
+function clearHistory(){
+  if(!confirm('Clear analysis history?')) return;
+  history = [];
+  localStorage.removeItem('gysv_history_v1');
+  renderHistory();
+}
+/* Download history */
+function downloadHistory(){
+  const blob = new Blob([JSON.stringify(history, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `gysv-history-${new Date().toISOString()}.json`; a.click();
+  URL.revokeObjectURL(url);
+}
+/* Offer letter client-side parsing (pdf.js + text files) */
+async function analyzeOffer(){
+  const f = document.getElementById('offerFile').files[0];
+  if(!f) return alert('Select a file (PDF or TXT)');
+  const name = f.name.toLowerCase();
+  let text = '';
+  if(name.endsWith('.txt')){
+    text = await f.text();
+    processText(text, 'offer');
+    document.getElementById('offerResult').style.display='block';
+    document.getElementById('offerResult').innerHTML = `<div style="font-size:13px;color:var(--muted)">Offer parsed (TXT)</div>`;
+    return;
+  }
+  if(name.endsWith('.pdf')){
+    try{
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+      let fullText = '';
+      for(let p=1; p<=pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const txt = await page.getTextContent();
+        const pageText = txt.items.map(i=>i.str).join(' ');
+        fullText += '\n' + pageText;
+      }
+      text = fullText;
+      processText(text, 'offer');
+      document.getElementById('offerResult').style.display='block';
+      document.getElementById('offerResult').innerHTML = `<div style="font-size:13px;color:var(--muted)">Offer parsed (PDF) — ${text.length} chars</div>`;
+      return;
+    }catch(err){
+      console.error(err);
+      alert('PDF parsing failed — try opening file in a PDF reader and copy-paste text, or use server-side parsing.');
+      return;
+    }
+  }
+  alert('Unsupported file type. Use PDF or TXT.');
+}
+/* Filter history by search (simple) */
+function filterHistory(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(!q) { renderHistory(); return; }
+  const filtered = history.filter(h=> {
+    const terms = h.matches.map(m=>m.term).join(' ').toLowerCase();
+    const meta = (h.suggestions.join(' ') + ' ' + h.level + ' ' + h.score).toLowerCase();
+    const chk = (terms + ' ' + meta + ' ' + (h.excerpt || '')).toLowerCase();
+    return chk.includes(q);
+  });
+  const hEl = document.getElementById('historyList');
+  hEl.innerHTML = filtered.map(item=>`<div style="padding:8px;border-bottom:1px dashed #f0f6fb">
+    <div style="font-weight:800">${new Date(item.analyzed_at).toLocaleString()}</div>
+    <div style="font-size:13px;color:var(--muted)">${item.level} — ${item.score}% — ${item.matches.map(m=>m.term).slice(0,6).join(', ')}</div>
+  </div>`).join('');
+}
+/* Safety tips modal */
+function openTips(){
+  alert("Safety tips:\n\n1) Never pay money for a job or interview.\n2) Ask for company domain email and cross-check company registration.\n3) Do video / in-person interview with hiring manager.\n4) Never share OTP/UPI PIN/PAN/Aadhaar images unnecessarily. Verify before sharing documents.\n5) Verify salary, reporting manager, and contract before accepting.\n6) If pressured to pay or send screenshots, stop and report.");
+}
+/* On load */
+buildKeywordPanel();
+renderHistory();
+document.getElementById('lastScore').textContent = '—';
+document.getElementById('lastVerdict').textContent = '—';
+  function quickSearch(platform){
+  const name = document.getElementById('companyName').value.trim();
+  if(!name){ alert('Enter a company name'); return; }
+  let url = '';
+  const query = encodeURIComponent(name);
+  switch(platform){
+    case 'google':
+      url = `https://www.google.com/search?q=${query}`;
+      break;
+    case 'linkedin':
+      url = `https://www.linkedin.com/search/results/companies/?keywords=${query}`;
+      break;
+    case 'indeed':
+      url = `https://www.indeed.com/companies/search?q=${query}`;
+      break;
+    case 'foundit':
+      url = `https://www.foundit.in/search?query=${query}`;
+      break;
+    case 'glassdoor':
+      url = `https://www.glassdoor.com/Reviews/company-reviews.htm?keyword=${query}`;
+      break;
+  }
+  window.open(url, '_blank');
+}
+</script>
+</body>
+</html>
