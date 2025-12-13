@@ -66,7 +66,7 @@ Hosting	HuggingFace Spaces
 Data Privacy	Fully client-side
 🚀 Live Demo (Try It Now)
 
-## 👉 https://huggingface.co/spaces/kandukurijaswanth/GYSVfakejobdecter
+## 👉 https://huggingface.co/spaces/kandukurijaswanth/gysvshieldsmartfakejobofferletterscanner
 
 📂 Folder Structure 
 /project
