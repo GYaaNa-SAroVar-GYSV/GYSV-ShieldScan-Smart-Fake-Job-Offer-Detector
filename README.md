@@ -4,7 +4,7 @@ GYSV is a single-page, keyword-based fake job and offer-letter detector for Indi
 🔗 Live Demo
 
 👉 HuggingFace Space:
-https://huggingface.co/spaces/kandukurijaswanth/GYSVfakejobdecter
+https://huggingface.co/spaces/kandukurijaswanth/gysvshieldsmartfakejobofferletterscanner
 
 📘 Overview
 
