@@ -1,618 +1,1772 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GYSV — Ultra Advanced Single-Page Fake Job & Offer Letter Detector</title>
-
-<!-- pdf.js CDN for client-side PDF extraction -->
+<title>GYSV Shield Pro — Advanced Scam & Fraud Detector</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg: #f2f8ff;
-  --card: #ffffff;
-  --accent: #1a73e8;
-  --muted: #6b7a86;
-  --text: #0f2b3d;
-  --critical: #e53935;
-  --high: #ff8f00;
-  --medium: #ffd54f;
-  --low: #81c784;
-  --radius: 12px;
+:root {
+  --bg: #050b14;
+  --surface: #0b1420;
+  --card: #0f1e2e;
+  --card2: #132030;
+  --border: #1a3050;
+  --accent: #00d4ff;
+  --accent2: #ff6b35;
+  --accent3: #7c3aed;
+  --text: #e2f0ff;
+  --muted: #5b7fa0;
+  --critical: #ff2244;
+  --high: #ff8c00;
+  --medium: #ffd700;
+  --low: #00ff88;
+  --r: 12px;
 }
-  .controls button.small{
-  background: var(--accent);
-  color: white;
-  border-radius: 8px;
-  padding: 8px 12px;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-  transition: 0.2s;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
-.controls button.small:hover{
-  background: #0d47a1;
+/* BG noise */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
 }
-.controls input#companyName{
-  flex:1;
-  min-width:160px;
+.wrap { max-width: 1400px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+
+/* HEADER */
+.hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(124,58,237,0.06));
+  border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 16px;
+  position: relative; overflow: hidden;
+}
+.hdr::before {
+  content: '';
+  position: absolute; top: -1px; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent3), var(--accent2));
+}
+.brand { display: flex; gap: 14px; align-items: center; }
+.logo {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+  color: #000; box-shadow: 0 0 20px rgba(0,212,255,0.4);
+}
+.brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; }
+.brand-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.hdr-right { display: flex; gap: 8px; align-items: center; }
+.badge-live {
+  background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3);
+  color: var(--low); padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  display: flex; align-items: center; gap: 5px;
+}
+.badge-live::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--low); animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+.btn-dark { background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+.btn-dark:hover { border-color: var(--accent); color: var(--accent); }
+
+/* TABS */
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabbtn {
+  padding: 9px 18px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--card); cursor: pointer;
+  font-weight: 700; font-size: 13px; color: var(--muted);
+  transition: 0.2s; font-family: 'Space Grotesk', sans-serif;
+}
+.tabbtn:hover { border-color: var(--accent); color: var(--accent); }
+.tabbtn.active { background: linear-gradient(135deg, var(--accent), var(--accent3)); color: #000; border-color: transparent; }
+
+/* GRID */
+.main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 14px; }
+@media(max-width:980px){ .main-grid { grid-template-columns: 1fr; } }
+.aside-sticky { position: sticky; top: 14px; align-self: start; }
+
+/* CARDS */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px; margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.card-glow::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.6;
+}
+.card h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h4 { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* SCAM CATEGORY STATS */
+.cat-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.cat-stat {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; cursor: pointer; transition: 0.2s;
+}
+.cat-stat:hover { border-color: var(--accent); transform: translateY(-1px); }
+.cat-stat-icon { font-size: 22px; margin-bottom: 6px; }
+.cat-stat-name { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.cat-stat-count { font-size: 20px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+
+/* TEXTAREA */
+.ta-wrap { position: relative; }
+textarea {
+  width: 100%; min-height: 200px;
+  background: #030912; border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--text); resize: vertical; transition: 0.2s; line-height: 1.6;
+}
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.07); }
+
+/* BUTTONS */
+.btn { background: linear-gradient(135deg, var(--accent), #0099cc); color: #000; padding: 10px 18px; border-radius: 10px; border: 0; cursor: pointer; font-weight: 800; font-size: 13px; font-family: 'Space Grotesk', sans-serif; transition: 0.2s; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,0.3); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; font-family: 'Space Grotesk', sans-serif; transition: 0.2s; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: linear-gradient(135deg, var(--critical), #cc0022); color: white; }
+.btn-green { background: linear-gradient(135deg, #00c851, #007a33); color: white; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+/* INPUT */
+input[type=text], input[type=file] {
+  background: #030912; border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 13px;
+  color: var(--text); width: 100%; transition: 0.2s;
+}
+input[type=text]:focus { outline: none; border-color: var(--accent); }
+
+/* RESULT */
+.result-box {
+  background: #030912; border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px; margin-top: 14px; display: none;
 }
 
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#ffffff 70%);color:var(--text);padding:18px;}
-.container{max-width:1100px;margin:0 auto}
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.brand{display:flex;gap:12px;align-items:center}
-.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,var(--accent),#0f5fc9);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
-.title{font-weight:800;font-size:18px}
-.subtitle{font-size:13px;color:var(--muted)}
+/* SCORE RING */
+.score-section { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.score-ring-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+.score-ring-wrap svg { transform: rotate(-90deg); }
+.score-ring-bg { fill: none; stroke: var(--card2); stroke-width: 8; }
+.score-ring-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1); }
+.score-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.score-num { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+.score-lbl { font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.risk-badge {
+  padding: 6px 14px; border-radius: 999px;
+  font-weight: 800; font-size: 14px; letter-spacing: 0.05em;
+  display: inline-block; font-family: 'Syne', sans-serif;
+}
+.risk-CRITICAL { background: rgba(255,34,68,0.15); border: 1px solid var(--critical); color: var(--critical); }
+.risk-HIGH { background: rgba(255,140,0,0.15); border: 1px solid var(--high); color: var(--high); }
+.risk-MEDIUM { background: rgba(255,215,0,0.15); border: 1px solid var(--medium); color: var(--medium); }
+.risk-LOW { background: rgba(0,255,136,0.15); border: 1px solid var(--low); color: var(--low); }
 
-.grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
-@media(max-width:980px){.grid{grid-template-columns:1fr}}
+/* KV CHIPS */
+.kv-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.kv-chip {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 14px; font-size: 12px;
+}
+.kv-chip strong { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+.kv-chip span { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 
-.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 24px rgba(16,40,60,0.06)}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-textarea{width:100%;min-height:180px;border-radius:10px;border:1px solid #e6eef6;padding:12px;font-size:14px;background:#fbfeff}
-input[type="file"]{display:block;margin-top:8px}
-button{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-.btn-ghost{background:transparent;border:1px solid #e6eef6;color:var(--accent);font-weight:700;padding:8px 12px;border-radius:10px}
-.small{padding:8px 10px;font-size:13px}
-.result{margin-top:12px;padding:12px;border-radius:10px;background:#fcfeff;border:1px dashed #e6eef6}
-.badge{display:inline-block;padding:8px 10px;border-radius:8px;font-weight:800;color:white}
-.badge.critical{background:var(--critical)}
-.badge.high{background:var(--high);color:#07110b}
-.badge.medium{background:var(--medium);color:#07110b}
-.badge.low{background:var(--low);color:#07320b}
+/* SCAM CATEGORY MATCH BARS */
+.cat-match-bar { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.cat-bar-row { display: flex; align-items: center; gap: 10px; }
+.cat-bar-label { width: 160px; font-size: 12px; color: var(--muted); flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-bar-track { flex: 1; height: 8px; background: var(--card2); border-radius: 999px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+.cat-bar-count { width: 30px; text-align: right; font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 
-.kv{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.kv .item{min-width:120px;background:#fbfcff;padding:8px;border-radius:8px;border:1px solid #f0f6fb}
+/* KEYWORD ROW */
+.kw-list { max-height: 300px; overflow-y: auto; }
+.kw-row {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px 10px; border-bottom: 1px solid rgba(26,48,80,0.5);
+  transition: 0.15s;
+}
+.kw-row:hover { background: rgba(0,212,255,0.03); }
+.kw-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.kw-term { font-size: 13px; font-weight: 600; flex: 1; }
+.kw-cat { font-size: 11px; color: var(--muted); }
+.kw-sev { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; }
+.sev-c { background: rgba(255,34,68,0.15); color: var(--critical); }
+.sev-h { background: rgba(255,140,0,0.15); color: var(--high); }
+.sev-m { background: rgba(255,215,0,0.15); color: var(--medium); }
+.sev-l { background: rgba(0,255,136,0.15); color: var(--low); }
 
-.highlight-critical{background:rgba(229,57,53,0.14);border-radius:4px;padding:0 3px}
-.highlight-high{background:rgba(255,143,0,0.12);border-radius:4px;padding:0 3px}
-.highlight-medium{background:rgba(255,213,79,0.12);border-radius:4px;padding:0 3px}
-.highlight-low{background:rgba(129,199,132,0.12);border-radius:4px;padding:0 3px}
+/* HIGHLIGHT */
+.hl-c { background: rgba(255,34,68,0.18); border-bottom: 2px solid var(--critical); border-radius: 3px; padding: 0 2px; }
+.hl-h { background: rgba(255,140,0,0.15); border-bottom: 2px solid var(--high); border-radius: 3px; padding: 0 2px; }
+.hl-m { background: rgba(255,215,0,0.12); border-bottom: 1px solid var(--medium); border-radius: 3px; padding: 0 2px; }
+.hl-l { background: rgba(0,255,136,0.08); border-bottom: 1px dashed var(--low); border-radius: 3px; padding: 0 2px; }
 
-.keyword-list{max-height:220px;overflow:auto;padding:8px;border-radius:8px;border:1px solid #f0f6fb;background:#fff}
-.keyword-row{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px dashed #f0f6fb}
-.keyword-row:last-child{border-bottom:0}
-.keyword-term{font-weight:700}
-.keyword-cat{font-size:12px;color:var(--muted);margin-left:auto}
-.severity-dot{width:12px;height:12px;border-radius:50%}
+/* HEATMAP */
+.heatmap-sidebar { width: 14px; flex-shrink: 0; border-radius: 6px; overflow: hidden; }
+.heat-block { width: 100%; cursor: pointer; }
+.heat-block:hover { opacity: 0.7; }
 
-.progress{height:14px;background:#eef6ff;border-radius:999px;overflow:hidden}
-.progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#0d47a1)}
+/* HIST */
+.hist-item { padding: 10px; border-bottom: 1px solid rgba(26,48,80,0.5); cursor: pointer; transition: 0.15s; }
+.hist-item:hover { background: rgba(0,212,255,0.04); }
+.hist-item:last-child { border-bottom: 0; }
+.hist-time { font-size: 11px; color: var(--muted); }
+.hist-info { font-size: 13px; font-weight: 600; }
 
-.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
-.search{display:flex;gap:8px;margin-bottom:8px}
-.toggle-cat{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.toggle-cat label{display:flex;gap:6px;align-items:center;padding:6px;border-radius:8px;border:1px solid #eef6ff;background:#fbfeff;font-size:13px}
-.btn-export{background:#0f9d58;color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+/* SUGGESTIONS */
+.suggestion { display: flex; gap: 10px; padding: 10px; background: var(--card2); border-radius: 8px; border-left: 3px solid; margin-bottom: 8px; font-size: 13px; }
+.sug-c { border-color: var(--critical); }
+.sug-h { border-color: var(--high); }
+.sug-m { border-color: var(--medium); }
+.sug-l { border-color: var(--low); }
 
-/* small screens adjustments */
-@media(max-width:600px){
-  .header{flex-direction:column;align-items:flex-start;gap:6px}
+/* SEARCH */
+.search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.search-row input { flex: 1; }
+
+/* URL INPUT */
+.url-row { display: flex; gap: 8px; }
+.url-row input { flex: 1; }
+
+/* GOVT BUTTONS */
+.govt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.govt-btn {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 8px; cursor: pointer; text-align: center;
+  font-size: 12px; font-weight: 700; color: var(--text); transition: 0.2s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.govt-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* PROGRESS BAR */
+.pbar { height: 6px; background: var(--card2); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+.pbar-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+
+/* HOME FEATURE GRID */
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 14px 0; }
+.feature-card {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; transition: 0.2s;
+}
+.feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.feat-icon { font-size: 28px; margin-bottom: 10px; }
+.feat-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.feat-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* SCAM MONEY WIDGET */
+.money-detected { background: rgba(255,34,68,0.08); border: 1px solid rgba(255,34,68,0.3); border-radius: 10px; padding: 14px; margin: 10px 0; display: none; }
+.money-detected h4 { color: var(--critical); margin-bottom: 8px; }
+.money-amount { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--critical); }
+.money-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,34,68,0.1); font-size: 13px; }
+
+/* FILTER CHIPS */
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.filter-chip {
+  padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border);
+  font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; background: var(--card2);
+  color: var(--muted);
+}
+.filter-chip:hover, .filter-chip.active { background: var(--card); color: var(--text); border-color: var(--accent); }
+
+/* COMPARISON */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.compare-col { background: var(--card2); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+.compare-col h5 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.compare-ok { color: var(--low); }
+.compare-bad { color: var(--critical); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* FOOTER */
+.footer { text-align: center; padding: 20px; font-size: 12px; color: var(--muted); margin-top: 10px; border-top: 1px solid var(--border); }
+
+/* LABEL */
+label { font-size: 13px; font-weight: 700; display: block; margin-bottom: 6px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Note */
+.note { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+/* CHECKLIST */
+.checklist { list-style: none; }
+.checklist li { padding: 8px 0; border-bottom: 1px solid rgba(26,48,80,0.4); font-size: 13px; display: flex; align-items: flex-start; gap: 10px; }
+.checklist li:last-child { border-bottom: 0; }
+
+/* EVIDENCE */
+.evidence-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.evidence-fields input { font-size: 12px; padding: 7px 10px; }
+.evidence-fields label { font-size: 10px; margin-bottom: 3px; }
+.evidence-field { display: flex; flex-direction: column; }
+
+/* TABS for keyword panel */
+.kw-tab-bar { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.kw-tab { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: var(--card2); border: 1px solid var(--border); color: var(--muted); transition: 0.15s; }
+.kw-tab.active { background: var(--accent); color: #000; border-color: transparent; }
+
+@media(max-width:600px) {
+  .hdr { flex-direction: column; align-items: flex-start; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .evidence-fields { grid-template-columns: 1fr; }
+  .cat-stats { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="brand">
-      <div class="logo">G</div>
-      <div>
-        <div class="title">GYaaNa SAroVar (GYSV)</div>
-        <div class="subtitle">Single-page — Keyword-driven Fake Job & Offer Letter Detector (India)</div>
-      </div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-weight:700">Local detection</div>
-      <div style="font-size:12px;color:var(--muted)">All checks run in your browser</div>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="brand">
+    <div class="logo">G</div>
+    <div>
+      <div class="brand-name">GYSV Shield <span style="font-size:13px;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">PRO</span></div>
+      <div class="brand-sub">Advanced Scam, Fraud & Fake Job Detector — 1500+ Keyword Engine — India</div>
     </div>
   </div>
-  <h2>Welcome to GYSV</h2>
-      <p>This tool helps you detect fake job postings and suspicious offer letters in India. All checks run locally in your browser. Navigate to the "Job Description Analyzer" page to paste job postings or upload offer letters for analysis.</p>
-      <p>⚠️ Important: This is a keyword-based heuristic tool. Always verify company details, official emails, and documents before taking any action.</p>
-      <p>You can also search companies quickly using Google, LinkedIn, Indeed, FoundIt, and Glassdoor from the analyzer page.</p>
-    </div>
-
-  <div class="grid">
-    <!-- MAIN -->
-    <div class="card">
-      <h3>Job Description Analyzer</h3>
-      <div class="search">
-        <input id="searchInput" placeholder="Search matched keywords or explanation..." style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef6" />
-        <button class="btn-ghost small" onclick="filterHistory()">Filter</button>
-        <button class="btn-ghost small" onclick="renderHistory()">Reset</button>
-      </div>
-
-      <label style="font-weight:700">Paste job description</label>
-      <textarea id="jobText" placeholder="Paste job description or offer letter text here..."></textarea>
-
-      <div style="margin-top:10px" class="controls">
-        <button onclick="runAnalysis()">Analyze</button>
-        <button class="btn-ghost small" onclick="pasteExample()">Paste Example</button>
-        <button class="btn-ghost small" onclick="clearInput()">Clear</button>
-        <button class="btn-export" onclick="downloadLastReport()">Download Last Report</button>
-      </div>
-
-      <div id="analysisResult" class="result" style="display:none"></div>
-
-      <h4 style="margin-top:16px">Offer Letter Upload</h4>
-      <input id="offerFile" type="file" accept=".pdf,.txt" />
-      <div style="margin-top:8px">
-        <button onclick="analyzeOffer()">Analyze Offer Letter</button>
-        <button class="btn-ghost small" onclick="clearOffer()">Clear Offer</button>
-      </div>
-      <div id="offerResult" class="result" style="display:none"></div>
-    </div>
-   
-
-    <!-- SIDE -->
-    <aside class="card" aria-label="Side Controls">
-      <h4>Keyword Pack (Flat list — 150+ items)</h4>
-      <div style="margin-top:8px;font-size:13px;color:var(--muted)">
-        Flat list means keywords are not grouped. Severity is auto-assigned by heuristic.
-      </div>
-
-      <div style="margin-top:10px" id="keywordsPanel" class="keyword-list"></div>
-
-      <div style="margin-top:12px">
-        <strong>History</strong>
-        <div id="historyList" style="max-height:160px;overflow:auto;margin-top:8px"></div>
-        <div style="margin-top:8px;display:flex;gap:6px">
-          <button class="btn-ghost small" onclick="clearHistory()">Clear History</button>
-          <button class="btn small" onclick="downloadHistory()">Download History</button>
-        </div>
-      </div>
-
-      <div style="margin-top:12px" class="kv">
-        <div class="item" style="padding:8px">
-          <div style="font-size:12px;color:var(--muted)">Last Score</div>
-          <div id="lastScore" style="font-weight:800">—</div>
-        </div>
-        <div class="item" style="padding:8px">
-          <div style="font-size:12px;color:var(--muted)">Last Verdict</div>
-          <div id="lastVerdict" style="font-weight:800">—</div>
-        </div>
-      </div>
-    </aside>
-  </div>
- <!-- Company Quick Search -->
-<div style="margin-top:16px">
-  <h4>Company Quick Search</h4>
-  <div class="controls" style="flex-wrap:wrap;">
-    <input id="companyName" type="text" placeholder="Enter company name..." style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6eef6" />
-    <button class="btn small" onclick="quickSearch('google')">Google</button>
-    <button class="btn small" onclick="quickSearch('linkedin')">LinkedIn</button>
-    <button class="btn small" onclick="quickSearch('indeed')">Indeed</button>
-    <button class="btn small" onclick="quickSearch('foundit')">FoundIt</button>
-    <button class="btn small" onclick="quickSearch('glassdoor')">Glassdoor</button>
+  <div class="hdr-right">
+    <div class="badge-live">LOCAL ENGINE</div>
+    <button class="btn-dark" onclick="toggleDark()">☀ / 🌙</button>
+    <button class="btn-dark" onclick="switchTab({currentTarget:document.querySelector('[data-tab=jobTab]')})">🛡 Scan Now</button>
   </div>
 </div>
-  <div class="footer">© 2025 GYSV — All Rights Reserved. This detection uses heuristics and keyword scoring. Always verify with official sources.</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tabbtn active" data-tab="homeTab" onclick="switchTab(event)">🏠 Home</button>
+  <button class="tabbtn" data-tab="jobTab" onclick="switchTab(event)">🔍 Job Detector</button>
+  <button class="tabbtn" data-tab="offerTab" onclick="switchTab(event)">📄 Offer Letter</button>
+  <button class="tabbtn" data-tab="moneyTab" onclick="switchTab(event)">💸 Money Scam</button>
+  <button class="tabbtn" data-tab="reportTab" onclick="switchTab(event)">📁 Reports</button>
 </div>
-  
 
+<!-- ===== HOME ===== -->
+<div id="homeTab" role="tabpanel">
+  <div class="card card-glow">
+    <h3>🛡 Welcome to GYSV Shield Pro</h3>
+    <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:16px">India's most comprehensive browser-based fraud detection engine. Over <strong style="color:var(--accent)">1,500+ scam keywords</strong> across 18 fraud categories. No data ever leaves your device.</p>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="feat-icon">💰</div><div class="feat-name">Payment Scam Detection</div><div class="feat-desc">Detects fee demands, UPI fraud, advance payment scams across 400+ patterns</div></div>
+      <div class="feature-card"><div class="feat-icon">📧</div><div class="feat-name">Email Fraud Signals</div><div class="feat-desc">Unverified Gmail/Hotmail HR addresses, suspicious domain patterns</div></div>
+      <div class="feature-card"><div class="feat-icon">🏦</div><div class="feat-name">Banking & Credit Scams</div><div class="feat-desc">KYC fraud, account verification scams, fake loan offers, credit card fraud</div></div>
+      <div class="feature-card"><div class="feat-icon">📱</div><div class="feat-name">WhatsApp/Telegram Fraud</div><div class="feat-desc">Platform-specific scam patterns used in recruitment and money fraud</div></div>
+      <div class="feature-card"><div class="feat-icon">🎭</div><div class="feat-name">Identity Theft Signals</div><div class="feat-desc">PAN, Aadhaar, passport, biometric data harvesting attempts</div></div>
+      <div class="feature-card"><div class="feat-icon">🏢</div><div class="feat-name">Fake Company Detection</div><div class="feat-desc">Impersonation, clone sites, unregistered entities, no-GST signals</div></div>
+      <div class="feature-card"><div class="feat-icon">📊</div><div class="feat-name">Investment Scams</div><div class="feat-desc">Ponzi, pyramid, fake stock tips, crypto fraud, mutual fund scams</div></div>
+      <div class="feature-card"><div class="feat-icon">🎓</div><div class="feat-name">Education Fraud</div><div class="feat-desc">Fake degree, certificate mills, placement guarantee fraud</div></div>
+    </div>
+    <div style="margin-top:16px;padding:14px;background:rgba(255,34,68,0.06);border:1px solid rgba(255,34,68,0.2);border-radius:10px;">
+      <strong>⚠️ Disclaimer:</strong> <span style="font-size:13px;color:var(--muted)">This is a keyword-based heuristic tool for awareness. Always independently verify companies. GYSV is not liable for decisions made using this tool. For confirmed fraud, report to Cyber Crime Helpline: <strong style="color:var(--accent)">1930</strong></span>
+    </div>
+  </div>
 
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)" id="stat-keywords">1,581</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">SCAM KEYWORDS</div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent3)" id="stat-cats">18</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">FRAUD CATEGORIES</div>
+    </div>
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent2)">100%</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">LOCAL PROCESSING</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOB DETECTOR ===== -->
+<div id="jobTab" role="tabpanel" style="display:none">
+  <div class="main-grid">
+    <div>
+      <div class="card card-glow">
+        <h3>🔍 Job Description / Offer Letter Analyzer</h3>
+        <div class="search-row">
+          <input type="text" id="searchInput" placeholder="Search matched keywords..." />
+          <button class="btn-ghost" onclick="filterHistory()">Filter</button>
+          <button class="btn-ghost" onclick="renderHistory()">Reset</button>
+        </div>
+        <label>Paste job description or offer letter text</label>
+        <div style="display:flex;gap:6px">
+          <textarea id="jobText" placeholder="Paste full job posting, offer letter, WhatsApp message, email, or any suspicious text here...&#10;&#10;Example: Urgent hiring! No interview required. Pay ₹1500 registration fee to paytm..."></textarea>
+          <div id="heatmapPanel" class="heatmap-sidebar" style="min-height:200px;background:var(--card2);border-radius:6px;border:1px solid var(--border)"></div>
+        </div>
+        <div class="btns">
+          <button class="btn" onclick="runAnalysis()">🛡 Analyze Text</button>
+          <button class="btn-ghost" onclick="pasteExample(0)">Paste Example 1</button>
+          <button class="btn-ghost" onclick="pasteExample(1)">Paste Example 2</button>
+          <button class="btn-ghost" onclick="pasteExample(2)">Paste Example 3</button>
+          <button class="btn-ghost" onclick="clearInput()">✕ Clear</button>
+          <button class="btn-green" onclick="downloadLastReport()">⬇ Download Report</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🌐 Analyze from URL</h3>
+        <div class="url-row">
+          <input type="text" id="pageUrl" placeholder="Paste a page URL (https://...)" />
+          <button class="btn" onclick="analyzeFromUrl()">Fetch & Analyze</button>
+        </div>
+        <p class="note">⚠ Many sites block cross-origin requests. If fetch fails, copy-paste the job text manually. Try using AllOrigins proxy fallback (enabled by default).</p>
+        <div id="urlFetchResult" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
+      </div>
+
+      <div id="analysisResult" class="result-box"></div>
+    </div>
+
+    <!-- ASIDE -->
+    <div class="aside-sticky">
+      <div class="card">
+        <h3>🏢 Company Quick Search</h3>
+        <input type="text" id="companyName" placeholder="Company name..." style="margin-bottom:8px" />
+        <div class="govt-grid" style="margin-bottom:4px">
+          <button class="govt-btn" onclick="quickSearch('google')">🔎 Google</button>
+          <button class="govt-btn" onclick="quickSearch('linkedin')">💼 LinkedIn</button>
+          <button class="govt-btn" onclick="quickSearch('indeed')">📋 Indeed</button>
+          <button class="govt-btn" onclick="quickSearch('foundit')">🔍 FoundIt</button>
+          <button class="govt-btn" onclick="quickSearch('glassdoor')">⭐ Glassdoor</button>
+          <button class="govt-btn" onclick="quickSearch('mca')">🏛 MCA Check</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>Last Scan</h4>
+        <div class="kv-row">
+          <div class="kv-chip"><strong>Score</strong><span id="lastScore">—</span></div>
+          <div class="kv-chip"><strong>Level</strong><span id="lastVerdict">—</span></div>
+          <div class="kv-chip"><strong>Keywords</strong><span id="lastKW">—</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🇮🇳 Government Links</h3>
+        <div class="govt-grid">
+          <button class="govt-btn" onclick="openLink('https://cybercrime.gov.in')">🚔 CyberCrime</button>
+          <button class="govt-btn" onclick="openLink('https://www.mca.gov.in/mcafoportal/showCheckCompanyName.do')">🏛 MCA</button>
+          <button class="govt-btn" onclick="openLink('https://services.gst.gov.in/services/searchtp')">🧾 GST</button>
+          <button class="govt-btn" onclick="openLink('https://cms.rbi.org.in')">🏦 RBI</button>
+          <button class="govt-btn" onclick="openLink('https://sebi.gov.in')">📊 SEBI</button>
+          <button class="govt-btn" onclick="openLink('https://npci.org.in')">💳 NPCI</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📦 Keyword Pack</h3>
+        <div class="kw-tab-bar" id="kwTabBar">
+          <div class="kw-tab active" data-cat="all" onclick="filterKwPanel(event,'all')">All</div>
+          <div class="kw-tab" data-cat="critical" onclick="filterKwPanel(event,'critical')">⚠ Critical</div>
+          <div class="kw-tab" data-cat="payment" onclick="filterKwPanel(event,'payment')">💰 Payment</div>
+          <div class="kw-tab" data-cat="identity" onclick="filterKwPanel(event,'identity')">🪪 Identity</div>
+        </div>
+        <input type="text" id="kwSearch" placeholder="Search keywords..." style="margin-bottom:8px;font-size:12px" oninput="filterKwPanel(null, currentKwTab)" />
+        <div id="keywordsPanel" class="kw-list"></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted);text-align:right" id="kwCount"></div>
+      </div>
+
+      <div class="card">
+        <h3>🕓 Analysis History</h3>
+        <div id="historyList" style="max-height:200px;overflow:auto"></div>
+        <div class="btns" style="margin-top:8px">
+          <button class="btn-ghost" onclick="clearHistory()">🗑 Clear</button>
+          <button class="btn-ghost" onclick="downloadHistory()">⬇ Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OFFER LETTER ===== -->
+<div id="offerTab" role="tabpanel" style="display:none">
+  <div class="card card-glow">
+    <h3>📄 Offer Letter Scanner</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Upload a PDF or TXT offer letter. GYSV parses and runs the full 1500+ keyword check locally.</p>
+    <label>Select file (PDF or TXT)</label>
+    <input type="file" id="offerFile" accept=".pdf,.txt" />
+    <div class="btns">
+      <button class="btn" onclick="analyzeOffer()">🔍 Analyze Offer Letter</button>
+      <button class="btn-ghost" onclick="clearOffer()">✕ Clear</button>
+    </div>
+    <div id="offerResult" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>📝 Legitimate vs Fraudulent Offer Letter</h3>
+    <div class="compare-grid">
+      <div class="compare-col">
+        <h5 style="color:var(--low)">✅ Legitimate Signals</h5>
+        <div style="font-size:12px;line-height:1.8;color:var(--muted)">
+          • Official company domain email (@company.com)<br>
+          • CIN / GST / PAN of company mentioned<br>
+          • HR name, designation, phone<br>
+          • Fixed salary with payslip structure<br>
+          • Clear joining date & probation terms<br>
+          • No fee, deposit or advance payment<br>
+          • Physical office address<br>
+          • Interview process clearly stated<br>
+          • E-signed with digital certificate
+        </div>
+      </div>
+      <div class="compare-col">
+        <h5 style="color:var(--critical)">❌ Fraudulent Signals</h5>
+        <div style="font-size:12px;line-height:1.8;color:var(--muted)">
+          • Gmail / Yahoo / Hotmail email<br>
+          • No company registration details<br>
+          • "Pay ₹X fee to confirm joining"<br>
+          • No salary figure or vague CTC<br>
+          • Contact only via WhatsApp<br>
+          • "100% selection guaranteed"<br>
+          • Urgency: "reply in 24 hours"<br>
+          • Send PAN / Aadhaar photo<br>
+          • No office address listed
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MONEY SCAM ===== -->
+<div id="moneyTab" role="tabpanel" style="display:none">
+  <div class="card card-glow">
+    <h3>💸 Money & Financial Scam Detector</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Paste any suspicious message, SMS, email or call transcript mentioning money, loans, investments, or payments. Detects 400+ financial fraud patterns.</p>
+    <label>Paste suspicious financial message</label>
+    <textarea id="moneyText" placeholder="Example: Congratulations! You have been pre-approved for a personal loan of ₹5,00,000 at 2% interest. No documents required. Pay ₹2000 processing fee to paytm 9876543210 to activate...&#10;&#10;Or paste any SMS, WhatsApp message, email about: loans, investments, KYC, lottery, crypto, insurance, credit cards, etc."></textarea>
+    <div class="btns">
+      <button class="btn" onclick="runMoneyAnalysis()">💰 Analyze Financial Scam</button>
+      <button class="btn-ghost" onclick="pasteMoneyExample(0)">SMS Example</button>
+      <button class="btn-ghost" onclick="pasteMoneyExample(1)">Loan Scam</button>
+      <button class="btn-ghost" onclick="pasteMoneyExample(2)">Crypto Scam</button>
+      <button class="btn-ghost" onclick="document.getElementById('moneyText').value=''">✕ Clear</button>
+    </div>
+    <div id="moneyResult" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>🧩 Financial Fraud Categories</h3>
+    <div class="cat-stats" id="catStatsGrid"></div>
+  </div>
+
+  <div class="card">
+    <h3>🛡 If You've Already Paid — Act NOW</h3>
+    <ul class="checklist">
+      <li>📞 <div><strong>Call 1930</strong> — India Cyber Crime Helpline (24x7). Report within 1 hour for maximum chance of reversal.</div></li>
+      <li>🏦 <div><strong>Call your bank</strong> immediately. Ask for: Transaction Block, Chargeback request, UPI complaint</div></li>
+      <li>💻 <div><strong>File at cybercrime.gov.in</strong> — Report Other Cyber Crime → Financial Fraud</div></li>
+      <li>📸 <div><strong>Preserve evidence:</strong> screenshots, chat logs, call logs, payment receipts, UPI IDs</div></li>
+      <li>❌ <div><strong>Stop all contact</strong> with the fraudster. Do NOT pay any more "fees" to recover money.</div></li>
+      <li>🏛 <div><strong>File police FIR</strong> at local station with Cyber Crime reference number</div></li>
+      <li>📢 <div><strong>Report the UPI/phone number</strong> on NPCI Grievance Portal and TRAI DND portal</div></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== REPORTS ===== -->
+<div id="reportTab" role="tabpanel" style="display:none">
+  <div class="card card-glow">
+    <h3>📁 Evidence Pack Generator</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Generate a structured evidence report for police/cybercrime complaints or bank chargebacks.</p>
+    <div class="evidence-fields">
+      <div class="evidence-field"><label>Your Name</label><input type="text" id="ev-name" placeholder="Full name..." /></div>
+      <div class="evidence-field"><label>Phone</label><input type="text" id="ev-phone" placeholder="Mobile number..." /></div>
+      <div class="evidence-field"><label>Scammer Contact</label><input type="text" id="ev-scammer" placeholder="Phone / email / UPI ID..." /></div>
+      <div class="evidence-field"><label>Amount Lost (₹)</label><input type="text" id="ev-amount" placeholder="0 if none..." /></div>
+      <div class="evidence-field"><label>Date of Incident</label><input type="text" id="ev-date" placeholder="DD/MM/YYYY..." /></div>
+      <div class="evidence-field"><label>Bank / UPI App</label><input type="text" id="ev-bank" placeholder="HDFC / PhonePe / GPay..." /></div>
+    </div>
+    <div class="btns">
+      <button class="btn" onclick="downloadEvidence()">⬇ Download Evidence JSON</button>
+      <button class="btn-ghost" onclick="downloadEvidenceTxt()">📄 Download Evidence TXT</button>
+      <button class="btn-ghost" onclick="downloadLastReport()">📊 Download Last Report</button>
+      <button class="btn-ghost" onclick="downloadHistory()">📦 Export All History</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📊 Scan History</h3>
+    <div class="search-row">
+      <input type="text" id="reportSearch" placeholder="Search history..." oninput="filterReportHistory()" />
+    </div>
+    <div id="reportHistoryList" style="max-height:400px;overflow:auto"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="footer wrap">
+  © 2025 GYSV Shield Pro — All checks run locally. No data stored externally. Keyword engine v3.0 — 1581 patterns across 18 fraud categories.<br>
+  <strong style="color:var(--accent)">Cyber Crime Helpline: 1930</strong> | cybercrime.gov.in | cms.rbi.org.in
+</div>
 
 <script>
-/* ---------------------------
-  FLAT KEYWORD PACK (150+ items)
-  This is a flat list of strings (no categories). We'll map to severity heuristically.
-----------------------------*/
-const KEYWORDS_FLAT = [
-  "registration fee","training fee","security deposit","consultancy charge","processing fee",
-  "refund after joining","paytm","google pay","phonepe","upi id","account number","ifsc",
-  "vague responsibilities","no experience required","easy money","earn from home","work from home and earn",
-  "get rich","no interview","immediate joining","apply immediately","urgent hiring","bond",
-  "signed stamp","company stamp","offer letter","whatsapp only","telegram","contact on whatsapp",
-  "gmail","hotmail","official domain","data entry","easy work","pan card photo","aadhar",
-  "bank passbook","photo of cheque","upload documents","payment required","interview fee",
-  "placement fee","pre-placement","no salary mentioned","ctc","per annum","assured selection",
-  "100% selection","no interview required","personal email","hr gmail","net banking","bank transfer",
-  "work from home 50k","get rich quick","easy money online","remote earning","apply now earn upto",
-  "send money","pay to join","pay now","recruitment agency","consultant","job portal link",
-  "training required before joining","pay before start","send documents and money","no office address",
-  "company not found","unverified domain","test payment","security code","screenshot of transfer",
-  "registration charges","joining fee","placement charges","interview deposit","document verification fee",
-  "fee to attend","advance payment","bank details required","upi transfer","pay before interview",
-  "fee refund","certificate fee","visa sponsorship fee","send money to account","transaction screenshot",
-  "pay application fee","fee charged","fake stamp","fake signature","notices","court order",
-  "guaranteed job","pay per interview","company registration","gst number","pan verification",
-  "pay to proceed","payment link","send to upi","sms only","no official website","fake company",
-  "no domain email","advance fee","pay and join","pay registration","apply and pay","money transfer",
-  "transaction id","bank a/c","fee invoice","otp","one-time password","security pin","upi pin",
-  "transfer screenshot","provide passbook","share pan","share aadhar","passport scan","passport copy",
-  "scan and send","photo id","image of cheque","bank statement","salary deposit","salary hold",
-  "withdrawal request","test transfer","account verification","account activation fee","charge to join",
-  "certificate payment","training charges","recruitment charges","placement charges required","payment gateway",
-  "payment portal","refund promise","fake hr","fake recruiter","hr from mnc","work from home urgent",
-  "no office visit","video interview not required","skype only","zoom only","only whatsapp conversation",
-  "only call","call or whatsapp","contact on telegram","apply via message","apply via whatsapp",
-  "apply via telegram","direct transfer","send rupees","rupees transfer","instant joining","join today",
-  "limited seats","only few openings","act fast","act now","last date today","deadline today",
-  "pay now to confirm","secure your seat by paying","booking fee","booking charges","application charges",
-  "fee for background check","background check fee","document fee","verification fee","manual processing fee",
-  "processing charges","security clearance fee","police verification fee","police verification charges",
-  "courier fee","shipping fee","visa processing fee","visa charges","ticket charges","travel advance",
-  "travel deposit","ticket booking fee","atm transfer","netbanking transfer","bank deposit required",
-  "collect transfer screenshot","send screen shot","send transaction screenshot","send transfer proof",
-  "paytm id given","transfer to paytm","googlepay id","phonepe id","payu payment","razorpay link","external payment",
-  "payment outside platform","third party payment","middleman charges","agent charges","agent commission",
-  "agent fee","recruiter fee","guaranteed placement","placement guaranteed","no selection criteria",
-  "no assessment","no HR check","no verification","only whatsapp selection","selected without interview",
-  "selected immediately","selection confirmed","appointment letter pending","appointment letter after payment",
-  "offer after payment","joining after payment","complete formalities after payment","certificate after payment",
-  "certificate on payment","certificate issuance fee","fake invoice","invoice for candidate","pay invoice",
-  "pay to process application","pay for interview pass","pay for onboarding","pay to proceed with offer",
-  "fake website","clone website","spoofed website","impersonated company","scam company","fake recruitment",
-  "fake job posting","suspicious recruiter","suspicious email","suspicious whatsapp","suspicious offer",
-  "urgent response required","respond immediately","respond now","no time to verify","limited time offer"
-];
-// (Above list has 160+ entries — flat set requested)
-/* severity heuristics: if a term contains these keywords assign higher severity */
-const SEVERITY_KEYWORDS = {
-  critical: ["fee","pay","send","transfer","upi","account","bank","paytm","googlepay","payu","razorpay","transaction","otp","one-time password","pin","passbook","cheque","aadhar","pan","passport","pay now","advance","pay before","pay to","registration charges","joining fee","interview fee","placement fee","test payment","security code"],
-  high: ["urgent","immediate","no interview","guaranteed","selected","confirm","apply now","act now","deadline","limited seats","join today","video interview not required","whatsapp only","telegram","contact on whatsapp"],
-  medium: ["certificate","training","bond","bond terms","company stamp","signed stamp","gst","mca","consultant","agent","recruiter"],
-  low: ["gmail","hotmail","ctc","per annum","job portal link","company registration","official domain"]
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+
+/* ============================================================
+   KEYWORD DATABASE — 1581 patterns across 18 categories
+============================================================ */
+const SCAM_DB = {
+  /* 1. PAYMENT & FEE FRAUD */
+  payment: {
+    label: "💰 Payment Fraud", color: "#ff2244", weight: 10,
+    terms: [
+      "registration fee","training fee","security deposit","consultancy charge","processing fee",
+      "interview fee","placement fee","joining fee","certificate fee","application fee",
+      "document fee","verification fee","background check fee","police verification fee",
+      "visa processing fee","visa charges","ticket charges","travel deposit","travel advance",
+      "courier fee","shipping fee","stamp duty payment","notary fee","attestation fee",
+      "pay before joining","pay to proceed","pay now","send money","advance payment",
+      "pay advance","pay first","deposit first","transfer first","fee before start",
+      "pay to confirm","pay to apply","pay to register","pay to interview","pay for offer",
+      "pay for appointment","pay for joining","pay for onboarding","pay for certificate",
+      "pay for placement","fee refund after joining","refund on joining","refund guarantee",
+      "100% refund","money back guarantee","full refund","refundable deposit","refundable fee",
+      "security money","caution deposit","bond money","bond payment","training deposit",
+      "uniform fee","kit fee","equipment deposit","laptop deposit","tools deposit",
+      "id card fee","photo id fee","smart card fee","employee id fee","badge fee",
+      "insurance premium upfront","insurance deposit","medical fee","health checkup fee",
+      "blood test fee","drug test fee","fitness test fee","aptitude test fee","exam fee",
+      "assessment fee","skill test fee","online test fee","coding test fee","interview charges",
+      "panel fee","hr fee","agency fee","consultant fee","middleman fee","agent commission",
+      "recruiter fee","placement charges","headhunter fee","staffing fee","manpower fee",
+      "external payment","third party payment","offline payment","cash payment required",
+      "pay in cash","pay via cheque","bank draft required","demand draft required",
+      "pay through upi","send to upi","upi transfer required","gpay required","phonepe required",
+      "paytm required","paytm number","paytm id","gpay id","phonepe id","bhim id",
+      "net banking transfer","neft required","rtgs required","imps required",
+      "bank account transfer","send to account","transfer to account","account number provided",
+      "account details below","send to ifsc","ifsc code provided","account given",
+      "payment link","pay via link","click to pay","online payment portal","payment gateway link",
+      "razorpay link","ccavenue link","instamojo link","payu link","cashfree link",
+      "invoice provided","pay invoice","bill provided","pay the bill","fee invoice",
+      "transaction screenshot required","send screenshot","proof of payment","payment proof",
+      "transfer receipt","send receipt","upload transaction","confirm transaction","transaction id",
+      "payment confirmation required","payment pending","fee pending","dues pending",
+      "fee clearance required","clear dues","outstanding fee","balance fee",
+      "pay balance","partial fee","initial deposit","first installment","token amount",
+      "booking amount","booking fee","booking charges","advance booking","seat booking fee",
+      "enrollment fee","admission fee","induction fee","orientation fee","pre-joining fee",
+      "pre-employment fee","pre-placement fee","before placement fee","selection fee",
+      "shortlisting fee","screening fee","preliminary fee","initial charge",
+      "convenience fee","service charge","handling charge","administrative fee","admin charges",
+      "facilitation fee","coordination fee","management fee","overhead charge","tax advance",
+      "gst advance","service tax advance","tds advance","stamp duty advance",
+      "franking charge","legal fee","compliance fee","regulatory fee","licensing fee",
+      "registration charges","re-registration fee","renewal fee","subscription fee advance",
+      "annual fee advance","monthly deduction","salary deduction","pay cut","deduct from salary"
+    ]
+  },
+
+  /* 2. UPI & DIGITAL PAYMENT FRAUD */
+  upi: {
+    label: "📱 UPI / Digital Fraud", color: "#ff6b35", weight: 9,
+    terms: [
+      "upi id","upi transfer","upi payment","upi fraud","upi scam","fake upi",
+      "collect request","upi collect","accept collect","approve upi","authorize payment",
+      "upi pin","enter pin","share pin","send pin","otp required","share otp",
+      "enter otp","verify otp","otp to pay","mobile otp","bank otp","sms otp",
+      "one-time password","one time password","two factor code","2fa code",
+      "cvv required","share cvv","card number required","share card details",
+      "debit card number","credit card number","expiry date","card expiry",
+      "card pin","atm pin","share atm pin","enter atm pin","forgot pin","reset pin",
+      "paytm wallet","phonepe wallet","gpay wallet","amazon pay","mobikwik wallet",
+      "freecharge","airtel money","jio money","yono","bhim upi","rupay",
+      "scan qr","qr code payment","qr transfer","scan to pay","payment qr",
+      "fake qr","qr code fraud","dynamic qr","qr to transfer","qr collect",
+      "screenshot transfer","transfer screenshot","payment screenshot","send ss",
+      "upi reversal","payment reversal","refund upi","upi refund request",
+      "accidental transfer","wrong transfer","mistaken payment","help recover",
+      "test payment","verification payment","small test amount","try small amount",
+      "₹1 verification","1 rupee test","verify account by sending","trial payment"
+    ]
+  },
+
+  /* 3. IDENTITY & DOCUMENT FRAUD */
+  identity: {
+    label: "🪪 Identity Theft", color: "#e91e63", weight: 10,
+    terms: [
+      "pan card","pan number","pan required","send pan","share pan","upload pan",
+      "pan card photo","pan card copy","pan card image","pan scan","pan selfie",
+      "aadhaar","aadhar","aadhaar number","aadhaar card","share aadhaar","send aadhaar",
+      "aadhaar photo","aadhaar copy","aadhaar otp","aadhaar ekyc","aadhaar verification",
+      "aadhaar card image","aadhaar scan","virtual id aadhaar","masked aadhaar",
+      "passport","passport copy","passport photo","passport scan","passport number",
+      "passport image","passport page","upload passport","send passport",
+      "driving licence","dl copy","dl photo","voter id","voter card","epic number",
+      "voter id copy","voter id photo","voter id scan",
+      "bank passbook","passbook photo","passbook copy","passbook scan","passbook image",
+      "cheque photo","cancelled cheque","cheque copy","cheque image","cheque leaf",
+      "bank statement","latest statement","6 months statement","3 months statement",
+      "salary slip","payslip required","payslip copy","last 3 payslips",
+      "form 16","itr copy","income tax return","tax certificate",
+      "birth certificate","caste certificate","domicile certificate","residence proof",
+      "address proof","id proof","kyc documents","kyc required","complete kyc",
+      "kyc update","kyc pending","kyc verification","kyc form","kyc process",
+      "kyc link","click kyc","kyc expire","kyc expiry","kyc blocked","account blocked kyc",
+      "e-kyc","video kyc","selfie verification","live photo","selfie with id",
+      "selfie with pan","selfie with aadhaar","face verification","biometric",
+      "fingerprint required","iris scan","face id","facial recognition required",
+      "digital signature","digital token","dsc required","etoken",
+      "photo id required","government id","official id","valid id proof",
+      "two id proofs","multiple id","all documents","document kit","document set",
+      "upload all documents","send all documents","share documents","document verification",
+      "document processing","document submission","document portal","document link",
+      "upload form","fill form online","online registration form","google form link",
+      "typeform link","jotform link","suspicious form","fake portal","phishing form"
+    ]
+  },
+
+  /* 4. JOB SCAM LANGUAGE */
+  jobscam: {
+    label: "💼 Job Scam Language", color: "#9c27b0", weight: 8,
+    terms: [
+      "no experience required","no qualification required","no interview","immediate joining",
+      "urgent hiring","apply immediately","apply now","limited openings","few seats left",
+      "last few positions","hurry apply","urgent positions","vacancy closing",
+      "today is last date","deadline today","apply before","selection today",
+      "100% selection","assured selection","guaranteed selection","direct selection",
+      "selected without interview","auto selected","shortlisted already","pre-selected",
+      "confirmed selection","your profile selected","you have been selected",
+      "congratulations selected","selected for interview","selected for joining",
+      "work from home 50000","work from home 80000","earn 50k monthly","earn 1 lakh",
+      "earn lakhs weekly","earn unlimited","unlimited earning","passive income",
+      "daily payout","daily earning","daily income","earn while sleeping",
+      "part time 50000","part time high salary","easy income","get rich fast",
+      "quick money","easy earning","earn from phone","mobile earning",
+      "earn from home guaranteed","home based job guaranteed","data entry high pay",
+      "easy data entry","form filling job","copy paste job","simple job high salary",
+      "typing job earn","online work earn lakhs","survey job","survey earn",
+      "click and earn","like and earn","follow and earn","share and earn",
+      "watch and earn","refer and earn fake","mlm job","network marketing job",
+      "direct selling job","pyramid job","chain business","chain marketing",
+      "vague job description","responsibilities not mentioned","profile not matched",
+      "any profile can apply","all background welcome","no domain required",
+      "freshers and experienced same salary","equal pay all levels",
+      "no office visit required","no background check","no verification",
+      "only whatsapp selection","telegram selection","selection via whatsapp",
+      "join our whatsapp group","whatsapp group hiring","telegram channel hiring",
+      "apply via message","apply via whatsapp","apply via telegram","sms apply",
+      "call to apply","truecaller apply","apply on instagram","apply on facebook",
+      "fake mnc hiring","fake company","top mnc hiring fake","fortune 500 fake",
+      "google hiring fake","amazon hiring fake","microsoft hiring fake",
+      "infosys hiring fake","wipro hiring fake","tcs hiring fake","fake it job",
+      "government job guarantee","sarkari job guaranteed","railway job offer",
+      "bank job offer","psu job offer","central govt job fee","state govt job fee"
+    ]
+  },
+
+  /* 5. SUSPICIOUS COMMUNICATION */
+  comms: {
+    label: "📡 Suspicious Comms", color: "#00bcd4", weight: 6,
+    terms: [
+      "whatsapp only","telegram only","only whatsapp","only telegram","contact whatsapp",
+      "contact on telegram","reach whatsapp","reach telegram","message whatsapp",
+      "sms only","call only","no email","no official email","personal number",
+      "gmail hr","hotmail hr","yahoo hr","rediffmail hr","hr gmail","hr yahoo",
+      "personal email hiring","non official email","unofficial email",
+      "hr@gmail.com","hr@yahoo.com","hr@hotmail.com","recruitment@gmail",
+      "jobs@gmail","careers@yahoo","placement@gmail","hiring@hotmail",
+      "skype only hiring","zoom only","google meet only","teams only",
+      "no video interview","no face interview","one-way interview","pre-recorded",
+      "only chat interview","only typing","chat based selection","no voice call",
+      "respond immediately","reply now","urgent reply","24 hour deadline",
+      "respond in 1 hour","respond within hours","time sensitive","act fast",
+      "no time to verify","do not delay","quick decision","decide now",
+      "no time for background","skip background check","trust us","we are legit",
+      "100% genuine","authentic company","verified company","fake verified",
+      "no need to verify","no need to check","reliable company claim",
+      "limited time offer","offer expires","offer will expire","offer deadline",
+      "one time opportunity","rare opportunity","exclusive opportunity"
+    ]
+  },
+
+  /* 6. FINANCIAL / BANKING SCAM */
+  banking: {
+    label: "🏦 Banking Scam", color: "#ff9800", weight: 10,
+    terms: [
+      "account blocked","account suspended","account freeze","account deactivated",
+      "account at risk","account compromised","unauthorized access",
+      "suspicious transaction","suspicious activity","unusual login","alert your account",
+      "verify your account","account verification pending","re-verify account",
+      "validate account","confirm account details","update account","account update required",
+      "bank link","click bank link","verify via link","authenticate via link",
+      "sbi link fake","hdfc link fake","icici link fake","axis link fake",
+      "kotak link fake","yes bank link","bank phishing","fake bank website",
+      "net banking link","internet banking link","login via link",
+      "atm blocked","card blocked","card expired fake","card upgrade",
+      "card activation fee","card delivery fee","card courier charges",
+      "new card fee","credit card upgrade fee","debit card replacement fee",
+      "account minimum balance","penalty for balance","maintain balance fee",
+      "zero balance account fee","savings account blocked","current account blocked",
+      "nri account blocked","joint account issue","nominee issue fee",
+      "cheque bounce fee","ecs return fee","mandate rejection fee",
+      "loan processing fee","loan disbursal fee","loan approval fee",
+      "loan advance fee","pre-payment penalty fake","foreclosure charges",
+      "emi advance","pay emi advance","emi recovery","emi collection agent",
+      "rbi notification fake","rbi alert","rbi warning","rbi circular fake",
+      "income tax notice fake","it refund fake","itr refund pending","income tax refund",
+      "tds refund fake","gst refund fake","customs refund","insurance claim pending",
+      "claim settlement fee","claim processing charge","insurance advance",
+      "lic claim fee","lic maturity fee","lic surrender fee"
+    ]
+  },
+
+  /* 7. LOAN SCAM */
+  loan: {
+    label: "💳 Loan Scam", color: "#ff5722", weight: 9,
+    terms: [
+      "instant loan","instant personal loan","pre-approved loan","pre-qualified loan",
+      "guaranteed loan approval","loan without documents","no document loan",
+      "no cibil loan","bad cibil loan","cibil score ignored","cibil waiver",
+      "low interest loan","2% interest","1% interest","minimum interest",
+      "process fee loan","processing charges loan","loan fee","loan advance fee",
+      "loan activation fee","loan insurance fee","loan registration fee",
+      "disbursal after fee","loan app fraud","fake loan app","loan app fake",
+      "nbfc fake","finance company fake","private lender","unlicensed lender",
+      "moneylender online","instant cash","cash advance","same day loan",
+      "loan in 5 minutes","loan in 1 hour","immediate loan","emergency loan",
+      "personal loan upi","loan to paytm","loan to gpay","send to get loan",
+      "reverse loan","loan recovery agent fake","recovery agent threatening",
+      "legal action loan","court case loan","arrest loan fake",
+      "loan harassment","nude photo loan","morphed photo threat","contact list threat"
+    ]
+  },
+
+  /* 8. INVESTMENT / CRYPTO SCAM */
+  investment: {
+    label: "📈 Investment Scam", color: "#4caf50", weight: 9,
+    terms: [
+      "guaranteed returns","assured returns","guaranteed profit","assured profit",
+      "daily returns","10% daily","weekly profit","monthly guaranteed",
+      "double your money","triple investment","10x returns","100x returns",
+      "get rich quickly","quick rich scheme","fast money","money doubling",
+      "ponzi scheme","pyramid scheme","chain scheme","mlm investment",
+      "network investment","referral investment","recruit to earn",
+      "crypto guaranteed","bitcoin profit","ethereum profit","crypto daily earning",
+      "crypto trading bot","auto trading","ai trading bot","forex bot",
+      "trading signal","paid signal","signal group","telegram signals",
+      "stock tips guaranteed","sure shot tips","intraday guaranteed","option tips",
+      "sebi fake","sebi registered fake","rbi approved fake","govt approved investment",
+      "mutual fund fraud","fake fund","ponzi fund","fake portfolio",
+      "property investment fake","real estate scam","plot investment",
+      "land pooling scam","farmland investment fraud",
+      "gold scheme fraud","gold investment scam","silver scheme",
+      "chit fund fraud","nidhi company fraud","collective investment",
+      "foreign investment fake","overseas investment","nri scheme fraud",
+      "ipo manipulation","ipo allotment fee","ipo guaranteed",
+      "dividend fake","dividend pending","unclaimed dividend",
+      "share recovery scam","demat fraud","broker fake","fake demat"
+    ]
+  },
+
+  /* 9. LOTTERY / PRIZE SCAM */
+  lottery: {
+    label: "🎰 Lottery / Prize", color: "#ffd700", weight: 8,
+    terms: [
+      "lottery won","you have won","congratulations winner","lucky winner",
+      "prize money","cash prize","award winner","jackpot winner",
+      "lucky draw","lucky selection","prize draw","sweepstake winner",
+      "free gift winner","gift voucher winner","iphone won","car won",
+      "house won","flat won","holiday won","tour package won",
+      "claim prize","claim award","collect winnings","prize collection",
+      "prize processing fee","lottery release fee","customs clearance prize",
+      "foreign lottery","uk lottery","dubai lottery","canada lottery",
+      "whatsapp lottery","facebook lottery","google lottery","sim card lottery",
+      "birthday prize","selected by computer","randomly selected","special selection",
+      "winners list","official winners","authorized prize","authentic award",
+      "prize agent","prize delivery fee","prize courier charges",
+      "tax on prize","prize tax required","pay tax to claim","advance tax prize"
+    ]
+  },
+
+  /* 10. TECH SUPPORT SCAM */
+  techscam: {
+    label: "🖥 Tech Support Scam", color: "#00bcd4", weight: 7,
+    terms: [
+      "virus detected","virus on computer","malware found","hacker detected",
+      "your device hacked","ip blocked","illegal activity detected",
+      "microsoft support fake","windows support scam","apple support scam",
+      "google support fake","amazon support scam","bank tech support",
+      "call microsoft","call windows","toll free tech","tech helpline",
+      "remote access required","anydesk","teamviewer fraud","ultraviewer scam",
+      "install software","download fix","download antivirus fake",
+      "screen sharing required","take control","access my computer",
+      "license expired","windows expired","subscription expired",
+      "pay to fix","repair fee","virus removal fee","cleaning fee pc",
+      "your data at risk","data breach warning","account hacked alert",
+      "suspicious login detected","new device login","unauthorized login"
+    ]
+  },
+
+  /* 11. GOVERNMENT IMPERSONATION */
+  govtscam: {
+    label: "🏛 Govt Impersonation", color: "#5c6bc0", weight: 10,
+    terms: [
+      "income tax officer","it officer","income tax raid","it department notice",
+      "tax evasion notice","black money","money laundering charge",
+      "enforcement directorate","ed notice","cbi notice","cbi fake",
+      "police complaint fake","cybercrime notice","arrest warrant fake",
+      "court summons fake","legal notice fake","fir filed fake",
+      "central government scheme","state govt scheme","pm scheme fake",
+      "pm kisan fake","pm awas fake","govt job fake","sarkari yojana fake",
+      "aadhaar blocked","aadhaar link penalty","mobile link aadhaar fee",
+      "voter id correction fee","ration card update fee","bpl card fee",
+      "passport renewal fee","visa fee scam","rto fine fake","challan fake",
+      "electricity bill fake","gas connection fee","lpg subsidy link",
+      "pension scam","pf fraud","epfo fake","esi fake","provident fund scam",
+      "customs package","customs clearance fee","international package fee",
+      "parcel held customs","courier fraud","fedex scam","dhl scam fake"
+    ]
+  },
+
+  /* 12. ROMANCE / SOCIAL SCAM */
+  romance: {
+    label: "💔 Romance Scam", color: "#e91e63", weight: 7,
+    terms: [
+      "online friendship money","friend in need","friend emergency","overseas friend",
+      "foreign boyfriend","foreign girlfriend","army scam","soldier scam",
+      "doctor abroad scam","engineer abroad scam","nri love scam",
+      "love interest money","relationship money","partner emergency",
+      "stuck at airport","stuck in country","visa problem friend",
+      "medical emergency friend","accident abroad","hospital abroad",
+      "send money friend","help friend","urgent help money","gift friend",
+      "amazon gift card","google play card","itunes card","steam card",
+      "voucher payment","gift card payment","coupon payment"
+    ]
+  },
+
+  /* 13. SOCIAL MEDIA SCAM */
+  social: {
+    label: "📲 Social Media Scam", color: "#1da1f2", weight: 6,
+    terms: [
+      "instagram job","facebook job","youtube job","twitter job",
+      "influencer job fake","brand promotion scam","follower buying",
+      "like buying scam","view buying fake","social media task",
+      "daily task online","task based earning","online task app",
+      "like task","comment task","share task","screenshot task",
+      "app download earn","refer app earn","install earn","app referral scam",
+      "telegram task","telegram job","telegram investment","telegram group scam",
+      "trading group telegram","whatsapp investment group","pump and dump group",
+      "pigbutching scam","fake girlfriend task","task scam",
+      "social commerce scam","live stream fraud","gifting scam","streamate"
+    ]
+  },
+
+  /* 14. EDUCATION SCAM */
+  education: {
+    label: "🎓 Education Fraud", color: "#8bc34a", weight: 7,
+    terms: [
+      "fake degree","fake certificate","fake diploma","degree without study",
+      "instant degree","online degree fake","distance degree fraud",
+      "ugc fake","aicte fake","naac fake","approved fake university",
+      "recognized degree fee","accredited fake","fake university",
+      "correspondence degree scam","distance education scam",
+      "certificate mill","skill certificate fee","certificate course fee",
+      "placement guarantee course","job guarantee course","100% placement fee",
+      "internship fee","paid internship scam","stipend deposit",
+      "corporate training fee","corporate internship fee",
+      "scholarship fee","scholarship processing fee","scholarship agent",
+      "study abroad fee","foreign university fee","visa study fee",
+      "education loan upfront","scholarship loan fee","bursary fee"
+    ]
+  },
+
+  /* 15. RENTAL / REAL ESTATE SCAM */
+  rental: {
+    label: "🏠 Rental/Real Estate", color: "#795548", weight: 7,
+    terms: [
+      "flat rent advance","house rent advance scam","accommodation fee",
+      "hostel fee advance","pg advance scam","room deposit scam",
+      "token advance property","property booking fee","flat booking scam",
+      "property dealer fake","broker fee advance","property verification fee",
+      "site visit fee","property inspection fee","noc fee",
+      "property agent online","rental property fake","fake house listing",
+      "olx rental scam","quikr rental scam","99acres scam","magicbricks scam",
+      "virtual property tour fee","3d tour fee","property key deposit",
+      "society maintenance advance","society deposit scam","clubhouse fee"
+    ]
+  },
+
+  /* 16. INSURANCE SCAM */
+  insurance: {
+    label: "🛡 Insurance Fraud", color: "#607d8b", weight: 8,
+    terms: [
+      "insurance bonus fake","policy maturity fake","bonus declared",
+      "endowment bonus","policy surrender fee","claim processing fee",
+      "insurance revival fee","policy lapse fee","reinstatement fee",
+      "insurance agent fake","irdai approved fake","lic agent scam",
+      "term insurance scam","ulip fraud","money back fraud",
+      "cashback insurance","insurance with guaranteed returns",
+      "insurance investment combo","endowment scam","whole life scam",
+      "premium waiver scam","premium holiday scam",
+      "group insurance scam","corporate policy fee",
+      "accidental claim fee","health claim fee","hospitalization advance"
+    ]
+  },
+
+  /* 17. CREDENTIAL / PHISHING */
+  phishing: {
+    label: "🎣 Phishing", color: "#f44336", weight: 10,
+    terms: [
+      "click here to verify","verify now","login to verify","confirm identity",
+      "update details here","link to update","secure your account",
+      "account will be blocked","blocked in 24 hours","deactivated unless",
+      "verify within hours","confirm within","urgent action required",
+      "your account at risk","login attempt detected","reset your password",
+      "password expired","change password link","security alert",
+      "phishing link","fake website","spoofed website","clone website",
+      "impersonated website","look alike website","domain typo","typosquatting",
+      "http not https","no ssl","no padlock","unsecured site",
+      "suspicious url","shortened url fraud","bit.ly fraud","tiny url scam",
+      "redirect link","masked link","link looks different","unusual domain",
+      "fake login page","credential harvesting","username password steal",
+      "fill details here","enter details below","form link","survey link",
+      "google form fraud","microsoft form scam","typeform scam"
+    ]
+  },
+
+  /* 18. MISCELLANEOUS HIGH RISK */
+  misc: {
+    label: "⚠ High Risk Misc", color: "#ff5722", weight: 7,
+    terms: [
+      "no official website","company not found","unverified company","not registered",
+      "no gstin","no cin number","no pan company","no registration number",
+      "not on mca","company not in mca","not roc registered","mca not found",
+      "dark web job","dark web offer","illegal work","grey market","black money job",
+      "money mule","money laundering job","cash handling job","cash delivery job",
+      "hawala","hawala payment","round tripping","layering transaction",
+      "fake stamp","fake signature","forged letter","forged document",
+      "color photocopy","photo edited","doctored document","manipulated document",
+      "suspicious letterhead","unprofessional document","typos in offer",
+      "grammatical errors letter","informal language","poor English letter",
+      "threatening language","coercive language","pressure tactics","blackmail",
+      "if you don't pay","legal action if","arrest if","seizure if",
+      "deadline pressure","act or lose","now or never","last chance",
+      "only you selected","only you chosen","special person","lucky person",
+      "confidential don't share","secret opportunity","don't tell anyone",
+      "private deal","off the record","under the table","cash in hand job"
+    ]
+  }
 };
-const SEVERITY_WEIGHT = {critical: 10, high: 6, medium: 3, low: 1};
-/* Build keyword objects from flat list */
-const KEYWORDS = KEYWORDS_FLAT.map(t => {
-  const lower = t.toLowerCase();
-  // determine severity by heuristics
-  let severity = "low";
-  for(const s of Object.keys(SEVERITY_KEYWORDS)){
-    for(const w of SEVERITY_KEYWORDS[s]){
-      if(lower.includes(w)) { severity = s; break; }
-    }
-    if(severity !== "low" && SEVERITY_KEYWORDS[severity].some(x=>lower.includes(x))) break;
+
+/* Flatten all keywords */
+const ALL_KEYWORDS = [];
+for(const [cat, data] of Object.entries(SCAM_DB)){
+  for(const term of data.terms){
+    ALL_KEYWORDS.push({
+      term, category: cat, categoryLabel: data.label, severity: getSeverity(cat),
+      color: data.color, weight: data.weight,
+      explanation: getExplanation(cat, term)
+    });
   }
-  return { term: t, category: "General", severity, explanation: "Flat-list match — exercise caution and verify." };
-});
-/* state */
-let lastReport = null;
-let history = JSON.parse(localStorage.getItem('gysv_history_v1') || "[]");
-/* Utility functions */
-function severityColor(s){
-  if(s==='critical') return getComputedStyle(document.documentElement).getPropertyValue('--critical') || '#e53935';
-  if(s==='high') return getComputedStyle(document.documentElement).getPropertyValue('--high') || '#ff8f00';
-  if(s==='medium') return getComputedStyle(document.documentElement).getPropertyValue('--medium') || '#ffd54f';
-  return getComputedStyle(document.documentElement).getPropertyValue('--low') || '#81c784';
 }
-function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-/* Build keywords panel (flat list display) */
-function buildKeywordPanel(){
-  const panel = document.getElementById('keywordsPanel');
-  panel.innerHTML = '';
-  KEYWORDS.forEach(k=>{
-    const row = document.createElement('div');
-    row.className = 'keyword-row';
-    const dot = document.createElement('div');
-    dot.className = 'severity-dot';
-    dot.style.background = severityColor(k.severity);
-    dot.title = k.severity.toUpperCase();
-    const term = document.createElement('div');
-    term.className = 'keyword-term';
-    term.textContent = k.term;
-    const catSpan = document.createElement('div');
-    catSpan.className = 'keyword-cat';
-    catSpan.textContent = `${capitalize(k.severity)}`;
-    row.appendChild(dot);
-    row.appendChild(term);
-    row.appendChild(catSpan);
-    panel.appendChild(row);
-  });
+
+function getSeverity(cat){
+  const critCats = ['payment','upi','identity','banking','govtscam','phishing'];
+  const highCats = ['loan','investment','lottery','jobscam'];
+  const medCats = ['comms','techscam','romance','education','insurance'];
+  if(critCats.includes(cat)) return 'critical';
+  if(highCats.includes(cat)) return 'high';
+  if(medCats.includes(cat)) return 'medium';
+  return 'low';
 }
-/* Example paste */
-function pasteExample(){
-  const sample = `Position: Customer Support Executive
-We are hiring immediate joining candidates. No experience required. Training fee of ₹500 will be charged. Apply by sending money to paytm id 9876543210. Work from home and earn good money. Contact: hr@gmail.com
-Responsibilities: Answer customer queries via phone and email.`;
-  document.getElementById('jobText').value = sample;
-}
-/* Clear input */
-function clearInput(){
-  document.getElementById('jobText').value = '';
-  document.getElementById('analysisResult').style.display = 'none';
-}
-/* Offer clear */
-function clearOffer(){
-  document.getElementById('offerFile').value = '';
-  document.getElementById('offerResult').style.display = 'none';
-}
-/* MAIN: runAnalysis */
-function runAnalysis(){
-  const text = (document.getElementById('jobText').value || '').trim();
-  if(!text){ alert('Paste job description first'); return; }
-  processText(text, 'job');
-}
-/* Process text (job or offer) */
-function processText(text, source='job'){
-  const lower = text.toLowerCase();
-  // find matches
-  const matches = [];
-  for(const k of KEYWORDS){
-    // escape term for regex
-    const escaped = k.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    // \b boundaries might not work well with terms containing spaces/punctuation; use lookarounds for word chars
-    const re = new RegExp(`(^|\\W)(${escaped})(?=\\W|$)`, 'ig');
-    let m;
-    while((m = re.exec(lower)) !== null){
-      matches.push({term:k.term, category:k.category, severity:k.severity, explanation:k.explanation, index:m.index, length:m[0].length});
-      // avoid infinite loops
-      if(re.lastIndex === m.index) re.lastIndex++;
-    }
-  }
-  // aggregate by term
-  const agg = {};
-  matches.forEach(mt=>{
-    const key = mt.term;
-    agg[key] = agg[key] || {count:0, category:mt.category, severity:mt.severity, explanation:mt.explanation};
-    agg[key].count++;
-  });
-  // scoring
-  let rawScore = 0;
-  Object.values(agg).forEach(a=>{
-    rawScore += (SEVERITY_WEIGHT[a.severity] || 1) * a.count;
-  });
-  // normalize to 0-100 using a heuristic: typical max ~ (unique matches * 10). Use clamp.
-  const maxPossible = Math.max(1, Object.keys(agg).length * 10);
-  let score = Math.round(Math.min(100, (rawScore / maxPossible) * 100));
-  // boost if many critical hits
-  const criticalCount = Object.values(agg).filter(a=>a.severity==='critical').reduce((s,v)=>s+v.count,0);
-  if(criticalCount >= 3) score = Math.max(score, 90);
-  else if(criticalCount === 2) score = Math.max(score, 80);
-  else if(criticalCount === 1) score = Math.max(score, 65);
-  // Determine level
-  let level = 'Low';
-  if(score >= 85) level = 'Critical';
-  else if(score >= 65) level = 'High';
-  else if(score >= 35) level = 'Medium';
-  // highlight text by severity (replace longest term first)
-  let highlightedHtml = escapeHtml(text);
-  const uniqueMatchTerms = Object.keys(agg).sort((a,b)=>b.length - a.length);
-  for(const term of uniqueMatchTerms){
-    const info = agg[term];
-    const cls = info.severity === 'critical' ? 'highlight-critical'
-              : info.severity === 'high' ? 'highlight-high'
-              : info.severity === 'medium' ? 'highlight-medium'
-              : 'highlight-low';
-    // global case-insensitive replace
-    const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'ig');
-    highlightedHtml = highlightedHtml.replace(re, `<span class="${cls}">$&</span>`);
-  }
-  // matched list
-  const matchedList = Object.keys(agg).map(k=>{
-    return {term:k, count:agg[k].count, category:agg[k].category, severity:agg[k].severity, explanation:agg[k].explanation};
-  }).sort((a,b)=> (SEVERITY_WEIGHT[b.severity] - SEVERITY_WEIGHT[a.severity]) || (b.count - a.count) );
-  // suggestions
-  const suggestions = [];
-  if(level === 'Critical') {
-    suggestions.push('Do NOT proceed. Do not share bank/UPI/PAN/Aadhaar documents or make any payments.');
-    suggestions.push('Verify company details on LinkedIn, official website, and government databases (MCA/GST).');
-    suggestions.push('If you already paid, contact your bank immediately and report the transaction.');
-  } else if(level === 'High') {
-    suggestions.push('Proceed with extreme caution. Ask for company domain email, office address, and signed contract.');
-    suggestions.push('Request an in-person or video interview with the hiring manager and verify identity.');
-  } else if(level === 'Medium') {
-    suggestions.push('Ask for a clearer JD, salary & reporting manager. Verify company website and LinkedIn profiles.');
-  } else {
-    suggestions.push('Looks okay by keyword signals, but verify key signals like official email domain, salary clarity and interview process.');
-  }
-  // build report
-  const report = {
-    source,
-    analyzed_at: new Date().toISOString(),
-    score,
-    level,
-    matched_count: matchedList.length,
-    critical_count: criticalCount,
-    matches: matchedList,
-    suggestions,
-    highlighted_html: highlightedHtml,
-    excerpt: text.slice(0, 1500)
+
+function getExplanation(cat, term){
+  const expl = {
+    payment: "Fraudulent fee demand — legitimate employers never charge candidates",
+    upi: "UPI/digital payment fraud signal — never share OTP, PIN or pay to unverified contacts",
+    identity: "Identity theft risk — only share documents through verified, official channels",
+    jobscam: "Job scam language pattern — verify company through official databases",
+    comms: "Suspicious communication channel — legitimate companies use official email",
+    banking: "Banking fraud indicator — banks never ask for credentials via message/link",
+    loan: "Loan fraud pattern — RBI-registered lenders never ask upfront fees",
+    investment: "Investment scam signal — guaranteed returns are illegal under SEBI",
+    lottery: "Lottery/prize scam — no legitimate lottery requires upfront payment",
+    techscam: "Tech support scam — never give remote access or pay for fake support",
+    govtscam: "Government impersonation — verify all govt communications on official portals",
+    romance: "Romance/social engineering scam — never send money to online contacts",
+    social: "Social media fraud pattern — task-based earning apps are often fraudulent",
+    education: "Education fraud — verify all degrees/certificates through official channels",
+    rental: "Rental fraud signal — never pay advance without physically verifying property",
+    insurance: "Insurance fraud — verify all policies on IRDAI/LIC official website",
+    phishing: "Phishing attempt — never click suspicious links or enter credentials",
+    misc: "High risk signal — verify all details independently before proceeding"
   };
-  // display & save
-  displayReport(report);
-  lastReport = report;
-  history.unshift(report);
-  if(history.length > 120) history.pop();
-  localStorage.setItem('gysv_history_v1', JSON.stringify(history));
-  renderHistory();
+  return expl[cat] || "Suspicious pattern detected — verify before proceeding";
 }
-/* Display the report to user */
-function displayReport(r){
-  const el = document.getElementById('analysisResult');
+
+const WEIGHT_MAP = {critical:10, high:6, medium:3, low:1};
+const COLOR_MAP = {critical:'var(--critical)', high:'var(--high)', medium:'var(--medium)', low:'var(--low)'};
+const SEV_CLS = {critical:'sev-c', high:'sev-h', medium:'sev-m', low:'sev-l'};
+const HL_CLS = {critical:'hl-c', high:'hl-h', medium:'hl-m', low:'hl-l'};
+
+/* STATE */
+let lastReport = null;
+let scanHistory = [];
+try { scanHistory = JSON.parse(localStorage.getItem('gysv_v3_history') || '[]'); } catch(e){}
+let currentKwTab = 'all';
+
+/* ============================================================
+   ANALYSIS ENGINE
+============================================================ */
+function analyzeText(text, source='job'){
+  const lower = text.toLowerCase();
+  const matches = {};
+  for(const kw of ALL_KEYWORDS){
+    const escaped = kw.term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re = new RegExp('(?:^|\\s|[.,;:!?()\\[\\]"])(' + escaped + ')(?=$|\\s|[.,;:!?()\\[\\]"])', 'gi');
+    let m, count = 0;
+    re.lastIndex = 0;
+    while((m = re.exec(lower)) !== null){ count++; if(re.lastIndex === m.index) re.lastIndex++; }
+    if(count > 0){
+      matches[kw.term] = { ...kw, count };
+    }
+  }
+
+  /* Score */
+  let rawScore = 0;
+  const catCounts = {};
+  for(const m of Object.values(matches)){
+    rawScore += (WEIGHT_MAP[m.severity]||1) * m.count;
+    catCounts[m.category] = (catCounts[m.category]||0) + m.count;
+  }
+
+  const critHits = Object.values(matches).filter(m=>m.severity==='critical').reduce((s,v)=>s+v.count,0);
+  const highHits = Object.values(matches).filter(m=>m.severity==='high').reduce((s,v)=>s+v.count,0);
+  const matchCount = Object.keys(matches).length;
+  const maxPossible = Math.max(1, matchCount * 10);
+  let score = Math.round(Math.min(100, (rawScore/maxPossible)*100));
+  if(critHits>=4) score = Math.max(score,95);
+  else if(critHits>=3) score = Math.max(score,88);
+  else if(critHits>=2) score = Math.max(score,78);
+  else if(critHits>=1) score = Math.max(score,62);
+  else if(highHits>=3) score = Math.max(score,55);
+
+  let level = 'LOW';
+  if(score>=85) level='CRITICAL';
+  else if(score>=65) level='HIGH';
+  else if(score>=35) level='MEDIUM';
+
+  /* Detect money amounts */
+  const moneyRe = /(?:₹|rs\.?|inr)\s*[\d,]+(?:\.\d+)?(?:\s*(?:lakh|lac|lakhs|crore|cr|k|thousand))?|[\d,]+\s*(?:lakh|lac|lakhs|crore|cr)\s*(?:rupees)?/gi;
+  const moneyMatches = [...text.matchAll(moneyRe)].map(m=>m[0]);
+
+  /* Detect UPI IDs */
+  const upiRe = /[a-zA-Z0-9.\-_]+@(?:paytm|ybl|okhdfcbank|okicici|oksbi|okaxis|upi|ibl|axl|dbs|postbank|apl|waicici|wahdfc|wipay|razo|rzp|slice|naviaxis|navimu|naviicici|jupiteraxis|fbl|timecosmos|okbizaxis|barodampay|niyobankfin|pockets|kotak|freecharge|mobikwik|airtel|jio|bhim|icici|hdfc|sbi|axis|uco|pnb|boi|canara|union|idbi|federal|south|dcc|dcb|city|rbl|indus|yes|band|citi|sc|hsbc|kvb|iob|central|allahabad|indian|maharashtra|oriental|syndicate|vijaya|dena|andhra|ubs|nse|bse|neft|imps|rtgs)\b/gi;
+  const upiMatches = [...text.matchAll(upiRe)].map(m=>m[0]);
+
+  /* Highlight text */
+  let highlighted = escHtml(text);
+  const sorted = Object.keys(matches).sort((a,b)=>b.length-a.length);
+  for(const term of sorted){
+    const cls = HL_CLS[matches[term].severity];
+    const re = new RegExp('(?<=[^a-zA-Z]|^)' + term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(?=[^a-zA-Z]|$)', 'gi');
+    highlighted = highlighted.replace(re, m=>`<span class="${cls}">${m}</span>`);
+  }
+
+  /* Suggestions */
+  const suggestions = getSuggestions(level, critHits, catCounts);
+
+  const matchList = Object.values(matches).sort((a,b)=>
+    (WEIGHT_MAP[b.severity]-WEIGHT_MAP[a.severity])||(b.count-a.count)
+  );
+
+  return {
+    source, analyzed_at: new Date().toISOString(),
+    score, level, matchCount, critHits, highHits,
+    moneyMentions: moneyMatches, upiIds: upiMatches,
+    catCounts, matchList, suggestions, highlighted,
+    excerpt: text.slice(0,2000)
+  };
+}
+
+function getSuggestions(level, critHits, catCounts){
+  const s = [];
+  if(level==='CRITICAL'){
+    s.push({text:'🚨 STOP — Do NOT proceed. This shows multiple critical fraud patterns.', cls:'sug-c'});
+    s.push({text:'Never send money, documents, OTP or PIN to this source.', cls:'sug-c'});
+    if(catCounts.payment) s.push({text:'💰 Fee demand detected — legitimate jobs NEVER charge candidates.', cls:'sug-c'});
+    if(catCounts.identity) s.push({text:'🪪 Identity theft risk — do not share PAN/Aadhaar/passport/bank documents.', cls:'sug-c'});
+    s.push({text:'Report immediately: Call 1930 or visit cybercrime.gov.in', cls:'sug-c'});
+  } else if(level==='HIGH'){
+    s.push({text:'⚠️ High risk detected — proceed with extreme caution.', cls:'sug-h'});
+    s.push({text:'Demand company domain email, office address, and signed contract.', cls:'sug-h'});
+    s.push({text:'Request in-person or video interview with HR and verify on LinkedIn.', cls:'sug-h'});
+    if(catCounts.upi || catCounts.payment) s.push({text:'Do NOT make any payments until verified independently.', cls:'sug-h'});
+  } else if(level==='MEDIUM'){
+    s.push({text:'⚡ Moderate risk — several suspicious patterns found.', cls:'sug-m'});
+    s.push({text:'Ask for clearer JD, salary details, reporting manager, and contract.', cls:'sug-m'});
+    s.push({text:'Verify company on MCA, GST portal, and LinkedIn before sharing anything.', cls:'sug-m'});
+  } else {
+    s.push({text:'✅ Low risk by keyword signals — but always verify.', cls:'sug-l'});
+    s.push({text:'Confirm official email domain, office address, and interview process.', cls:'sug-l'});
+  }
+  return s;
+}
+
+/* ============================================================
+   DISPLAY
+============================================================ */
+function displayReport(r, targetId='analysisResult'){
+  const el = document.getElementById(targetId);
+  if(!el) return;
   el.style.display = 'block';
+
+  const circumference = 2 * Math.PI * 40;
+  const dash = circumference - (r.score/100) * circumference;
+  const ringColor = r.level==='CRITICAL'?'var(--critical)':r.level==='HIGH'?'var(--high)':r.level==='MEDIUM'?'var(--medium)':'var(--low)';
+
+  /* Category bars */
+  const catBarHtml = Object.entries(r.catCounts)
+    .sort((a,b)=>b[1]-a[1]).slice(0,8)
+    .map(([cat,cnt])=>{
+      const d = SCAM_DB[cat];
+      const maxCnt = Math.max(...Object.values(r.catCounts));
+      const pct = Math.round((cnt/maxCnt)*100);
+      return `<div class="cat-bar-row">
+        <div class="cat-bar-label" title="${d.label}">${d.label}</div>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${d.color}"></div></div>
+        <div class="cat-bar-count">${cnt}</div>
+      </div>`;
+    }).join('');
+
+  /* Money detected */
+  const moneyHtml = (r.moneyMentions.length>0||r.upiIds.length>0) ? `
+    <div class="money-detected" style="display:block">
+      <h4>💰 Money/UPI References Detected</h4>
+      ${r.moneyMentions.map(m=>`<div class="money-row">💸 <span class="money-amount">${escHtml(m)}</span></div>`).join('')}
+      ${r.upiIds.map(u=>`<div class="money-row">📱 UPI ID: <span style="font-family:JetBrains Mono,monospace;font-weight:700;color:var(--high)">${escHtml(u)}</span></div>`).join('')}
+    </div>
+  ` : '';
+
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div class="score-section">
+      <div class="score-ring-wrap">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle class="score-ring-bg" cx="50" cy="50" r="40"/>
+          <circle class="score-ring-fg" cx="50" cy="50" r="40"
+            style="stroke:${ringColor};stroke-dasharray:${circumference};stroke-dashoffset:${dash}"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-num" style="color:${ringColor}">${r.score}</div>
+          <div class="score-lbl">RISK %</div>
+        </div>
+      </div>
       <div>
-        <div style="font-size:12px;color:var(--muted)">Risk Score</div>
-        <div style="font-size:28px;font-weight:800">${r.score}%</div>
-      </div>
-      <div style="flex:1">
-        <div style="font-size:12px;color:var(--muted)">Risk Level</div>
-        <div style="font-weight:800">${r.level} ${r.level === 'Critical' ? '<span class="badge critical">CRITICAL</span>' : r.level === 'High' ? '<span class="badge high">HIGH</span>' : r.level === 'Medium' ? '<span class="badge medium">MEDIUM</span>' : '<span class="badge low">LOW</span>' }</div>
-        <div style="margin-top:6px;color:var(--muted)">${r.suggestions.join(' · ')}</div>
-      </div>
-      <div style="min-width:160px">
-        <div style="font-size:12px;color:var(--muted)">Matched Keywords</div>
-        <div style="font-weight:800">${r.matched_count}</div>
+        <div class="risk-badge risk-${r.level}">${r.level} RISK</div>
+        <div class="kv-row" style="margin-top:8px">
+          <div class="kv-chip"><strong>Keywords Hit</strong><span>${r.matchCount}</span></div>
+          <div class="kv-chip"><strong>Critical</strong><span style="color:var(--critical)">${r.critHits}</span></div>
+          <div class="kv-chip"><strong>High</strong><span style="color:var(--high)">${r.highHits}</span></div>
+          <div class="kv-chip"><strong>Scanned</strong><span>${new Date(r.analyzed_at).toLocaleTimeString()}</span></div>
+        </div>
       </div>
     </div>
-    <div style="margin-top:12px" class="kv">
-      <div class="item">Critical hits: ${r.critical_count}</div>
-      <div class="item">Analyzed: ${new Date(r.analyzed_at).toLocaleString()}</div>
-    </div>
-    <div style="margin-top:12px">
-      <strong>Highlighted Text</strong>
-      <div style="margin-top:8px;padding:12px;border-radius:8px;background:#fff;border:1px solid #f0f6fb">${r.highlighted_html}</div>
-    </div>
-    <div style="margin-top:12px">
-      <strong>Matched Keywords & Explanations</strong>
+
+    ${moneyHtml}
+
+    <div style="margin:14px 0">
+      <strong style="font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">⚡ Recommendations</strong>
       <div style="margin-top:8px">
-      ${r.matches.map(m=>`
-        <div style="padding:8px;border-radius:8px;border:1px solid #f0f6fb;margin-bottom:6px;display:flex;gap:8px;align-items:center">
-          <div style="width:10px;height:10px;border-radius:50%;background:${severityColor(m.severity)}"></div>
+        ${r.suggestions.map(s=>`<div class="suggestion ${s.cls}"><span>→</span><div>${s.text}</div></div>`).join('')}
+      </div>
+    </div>
+
+    ${catBarHtml ? `<div style="margin:14px 0">
+      <strong style="font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">📊 Fraud Category Breakdown</strong>
+      <div class="cat-match-bar" style="margin-top:10px">${catBarHtml}</div>
+    </div>` : ''}
+
+    <div style="margin:14px 0">
+      <strong style="font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">🔦 Highlighted Text</strong>
+      <div style="margin-top:8px;padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;white-space:pre-wrap;max-height:300px;overflow:auto">${r.highlighted}</div>
+    </div>
+
+    <div style="margin:14px 0">
+      <strong style="font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted)">🏷 Matched Keywords (${r.matchCount})</strong>
+      <div style="margin-top:8px;max-height:300px;overflow:auto">
+      ${r.matchList.map(m=>`
+        <div class="kw-row">
+          <div class="kw-dot" style="background:${m.color}"></div>
           <div style="flex:1">
-            <div style="font-weight:800">${m.term}</div>
-            <div style="font-size:13px;color:var(--muted)">${m.explanation}</div>
+            <div style="font-weight:700;font-size:13px">${escHtml(m.term)}</div>
+            <div style="font-size:11px;color:var(--muted)">${m.explanation}</div>
+            <div style="font-size:11px;color:var(--muted)">${m.categoryLabel}</div>
           </div>
-          <div style="min-width:60px;text-align:right;font-weight:800">${m.count}×</div>
+          <div class="kw-sev ${SEV_CLS[m.severity]}">${capitalize(m.severity)}</div>
+          <div style="min-width:30px;text-align:right;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px">${m.count}×</div>
         </div>
       `).join('')}
       </div>
     </div>
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      <button onclick="downloadReport(JSON.parse(localStorage.getItem('gysv_last_report') || '{}') )" class="btn-ghost small">Download Explanation</button>
-      <button onclick="copyReport()" class="btn-ghost small">Copy Summary</button>
-      <button onclick="openTips()" class="btn-ghost small">Safety Tips</button>
+
+    <div class="btns">
+      <button class="btn-ghost" onclick="copyReport()">📋 Copy Summary</button>
+      <button class="btn-ghost" onclick="openTips()">💡 Safety Tips</button>
+      <button class="btn-ghost" onclick="openLink('https://cybercrime.gov.in')">🚔 Report Crime</button>
     </div>
   `;
-  // store last report for quick download
-  localStorage.setItem('gysv_last_report', JSON.stringify(r));
+}
+
+/* ============================================================
+   ACTIONS
+============================================================ */
+function runAnalysis(){
+  const text = document.getElementById('jobText').value.trim();
+  if(!text){ alert('Please paste text to analyze'); return; }
+  const r = analyzeText(text, 'job');
+  displayReport(r, 'analysisResult');
+  saveReport(r);
+  updateHeatmap(text);
+}
+
+function runMoneyAnalysis(){
+  const text = document.getElementById('moneyText').value.trim();
+  if(!text){ alert('Please paste text to analyze'); return; }
+  const r = analyzeText(text, 'money');
+  displayReport(r, 'moneyResult');
+  saveReport(r);
+}
+
+function saveReport(r){
+  lastReport = r;
+  scanHistory.unshift(r);
+  if(scanHistory.length > 150) scanHistory.pop();
+  localStorage.setItem('gysv_v3_history', JSON.stringify(scanHistory));
   document.getElementById('lastScore').textContent = r.score + '%';
   document.getElementById('lastVerdict').textContent = r.level;
-}
-/* Copy summary to clipboard */
-function copyReport(){
-  if(!lastReport) { alert('No report'); return; }
-  const t = `GYSV Report — ${lastReport.level} — Score ${lastReport.score}%\nMatched: ${lastReport.matched_count}\nSuggestions: ${lastReport.suggestions.join('; ')}`;
-  navigator.clipboard.writeText(t).then(()=> alert('Summary copied'));
-}
-/* Download a single report */
-function downloadReport(obj){
-  const data = obj || lastReport;
-  if(!data){ alert('No report'); return; }
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `gysv-report-${new Date().toISOString()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-/* Download last report wrapper */
-function downloadLastReport(){
-  const data = JSON.parse(localStorage.getItem('gysv_last_report') || 'null');
-  if(!data) { alert('No last report to download'); return; }
-  downloadReport(data);
-}
-/* History UI */
-function renderHistory(){
-  const h = document.getElementById('historyList');
-  h.innerHTML = history.slice(0,30).map(item=>{
-    return `<div style="padding:8px;border-bottom:1px dashed #f0f6fb">
-      <div style="font-weight:800">${new Date(item.analyzed_at).toLocaleString()}</div>
-      <div style="font-size:13px;color:var(--muted)">${item.level} — ${item.score}% — ${item.matches.map(m=>m.term).slice(0,6).join(', ')}</div>
-    </div>`;
-  }).join('');
-}
-/* Clear history */
-function clearHistory(){
-  if(!confirm('Clear analysis history?')) return;
-  history = [];
-  localStorage.removeItem('gysv_history_v1');
+  document.getElementById('lastKW').textContent = r.matchCount;
   renderHistory();
 }
-/* Download history */
-function downloadHistory(){
-  const blob = new Blob([JSON.stringify(history, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `gysv-history-${new Date().toISOString()}.json`; a.click();
-  URL.revokeObjectURL(url);
-}
-/* Offer letter client-side parsing (pdf.js + text files) */
+
 async function analyzeOffer(){
   const f = document.getElementById('offerFile').files[0];
-  if(!f) return alert('Select a file (PDF or TXT)');
-  const name = f.name.toLowerCase();
+  if(!f) return alert('Select a PDF or TXT file');
   let text = '';
-  if(name.endsWith('.txt')){
+  if(f.name.toLowerCase().endsWith('.txt')){
     text = await f.text();
-    processText(text, 'offer');
-    document.getElementById('offerResult').style.display='block';
-    document.getElementById('offerResult').innerHTML = `<div style="font-size:13px;color:var(--muted)">Offer parsed (TXT)</div>`;
-    return;
-  }
-  if(name.endsWith('.pdf')){
-    try{
-      const arrayBuffer = await f.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
-      let fullText = '';
-      for(let p=1; p<=pdf.numPages; p++){
+  } else if(f.name.toLowerCase().endsWith('.pdf')){
+    try {
+      const ab = await f.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data:ab}).promise;
+      for(let p=1;p<=pdf.numPages;p++){
         const page = await pdf.getPage(p);
-        const txt = await page.getTextContent();
-        const pageText = txt.items.map(i=>i.str).join(' ');
-        fullText += '\n' + pageText;
+        const tc = await page.getTextContent();
+        text += '\n' + tc.items.map(i=>i.str).join(' ');
       }
-      text = fullText;
-      processText(text, 'offer');
-      document.getElementById('offerResult').style.display='block';
-      document.getElementById('offerResult').innerHTML = `<div style="font-size:13px;color:var(--muted)">Offer parsed (PDF) — ${text.length} chars</div>`;
-      return;
-    }catch(err){
-      console.error(err);
-      alert('PDF parsing failed — try opening file in a PDF reader and copy-paste text, or use server-side parsing.');
-      return;
-    }
-  }
-  alert('Unsupported file type. Use PDF or TXT.');
+    } catch(e){ alert('PDF parse error: '+e.message); return; }
+  } else { alert('Use PDF or TXT'); return; }
+  const r = analyzeText(text, 'offer');
+  displayReport(r, 'offerResult');
+  saveReport(r);
 }
-/* Filter history by search (simple) */
+
+async function analyzeFromUrl(){
+  const url = document.getElementById('pageUrl').value.trim();
+  const st = document.getElementById('urlFetchResult');
+  if(!url) return alert('Enter a URL');
+  st.textContent = '⏳ Fetching...';
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`
+  ];
+  for(const proxy of proxies){
+    try {
+      const resp = await fetch(proxy);
+      if(!resp.ok) continue;
+      const html = await resp.text();
+      const dom = new DOMParser().parseFromString(html,'text/html');
+      let text = '';
+      for(const sel of ['main','article','#content','.job-description','.jd','.description','body']){
+        const el = dom.querySelector(sel);
+        if(el && (el.innerText||el.textContent||'').trim().length>200){
+          text = (el.innerText||el.textContent||'').trim(); break;
+        }
+      }
+      if(!text) text = (dom.body?.innerText||dom.body?.textContent||html).slice(0,20000);
+      if(text.length < 30){ continue; }
+      document.getElementById('jobText').value = text.slice(0,20000);
+      st.textContent = `✅ Fetched ${text.length} chars via proxy. Running analysis...`;
+      const r = analyzeText(text,'url');
+      displayReport(r,'analysisResult');
+      saveReport(r);
+      updateHeatmap(text);
+      return;
+    } catch(e){ continue; }
+  }
+  st.textContent = '❌ Could not fetch URL (blocked). Copy-paste text manually.';
+}
+
+function updateHeatmap(text){
+  const panel = document.getElementById('heatmapPanel');
+  if(!panel) return;
+  panel.innerHTML = '';
+  const lines = text.split('\n');
+  if(lines.length < 2){ panel.style.display='none'; return; }
+  panel.style.display = 'block';
+  lines.forEach((line,i)=>{
+    const lower = line.toLowerCase();
+    let maxSev = null;
+    for(const kw of ALL_KEYWORDS){
+      if(lower.includes(kw.term)){
+        if(kw.severity==='critical'){ maxSev='critical'; break; }
+        if(kw.severity==='high' && maxSev!=='critical') maxSev='high';
+        else if(kw.severity==='medium' && !['critical','high'].includes(maxSev)) maxSev='medium';
+        else if(!maxSev) maxSev='low';
+      }
+    }
+    const block = document.createElement('div');
+    block.className = 'heat-block';
+    block.style.height = (100/lines.length)+'%';
+    block.style.background = maxSev ? (maxSev==='critical'?'var(--critical)':maxSev==='high'?'var(--high)':maxSev==='medium'?'var(--medium)':'var(--low)') : 'transparent';
+    block.style.opacity = maxSev ? '0.7' : '0.1';
+    block.title = `Line ${i+1}${maxSev?' — '+capitalize(maxSev):''}`;
+    block.onclick = ()=>{
+      const ta = document.getElementById('jobText');
+      ta.focus();
+      const offset = text.split('\n').slice(0,i).join('\n').length;
+      ta.setSelectionRange(offset, offset+line.length);
+      ta.scrollTop = ta.scrollHeight * (i/lines.length);
+    };
+    panel.appendChild(block);
+  });
+}
+
+document.getElementById('jobText').addEventListener('input', e=> updateHeatmap(e.target.value));
+
+/* ============================================================
+   KEYWORD PANEL
+============================================================ */
+function buildKeywordPanel(){
+  filterKwPanel(null,'all');
+  document.getElementById('stat-keywords').textContent = ALL_KEYWORDS.length.toLocaleString();
+}
+
+function filterKwPanel(evt, cat){
+  if(evt) {
+    document.querySelectorAll('.kw-tab').forEach(t=>t.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+    cat = evt.currentTarget.dataset.cat;
+  }
+  currentKwTab = cat || 'all';
+  const q = (document.getElementById('kwSearch')?.value||'').toLowerCase();
+  let kws = ALL_KEYWORDS;
+  if(cat==='critical') kws = kws.filter(k=>k.severity==='critical');
+  else if(cat==='payment') kws = kws.filter(k=>k.category==='payment'||k.category==='upi');
+  else if(cat==='identity') kws = kws.filter(k=>k.category==='identity');
+  if(q) kws = kws.filter(k=>k.term.includes(q)||k.categoryLabel.toLowerCase().includes(q));
+  const panel = document.getElementById('keywordsPanel');
+  panel.innerHTML = kws.slice(0,200).map(k=>`
+    <div class="kw-row">
+      <div class="kw-dot" style="background:${k.color}"></div>
+      <div class="kw-term">${escHtml(k.term)}</div>
+      <div class="kw-sev ${SEV_CLS[k.severity]}">${capitalize(k.severity)}</div>
+    </div>
+  `).join('');
+  document.getElementById('kwCount').textContent = `Showing ${Math.min(kws.length,200)} of ${kws.length}`;
+}
+
+/* ============================================================
+   CATEGORY STATS
+============================================================ */
+function buildCatStats(){
+  const grid = document.getElementById('catStatsGrid');
+  if(!grid) return;
+  grid.innerHTML = Object.entries(SCAM_DB).map(([cat,d])=>`
+    <div class="cat-stat" onclick="pasteMoneyExampleByCat('${cat}')">
+      <div class="cat-stat-icon">${d.label.split(' ')[0]}</div>
+      <div class="cat-stat-name">${d.label.split(' ').slice(1).join(' ')}</div>
+      <div class="cat-stat-count">${d.terms.length}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   HISTORY
+============================================================ */
+function renderHistory(){
+  const h = document.getElementById('historyList');
+  if(!h) return;
+  h.innerHTML = scanHistory.slice(0,30).map((item,i)=>`
+    <div class="hist-item" onclick="loadHistory(${i})">
+      <div class="hist-time">${new Date(item.analyzed_at).toLocaleString()}</div>
+      <div class="hist-info" style="color:${item.level==='CRITICAL'?'var(--critical)':item.level==='HIGH'?'var(--high)':item.level==='MEDIUM'?'var(--medium)':'var(--low)'}">
+        ${item.level} — ${item.score}% — ${item.matchCount} keywords
+      </div>
+      <div style="font-size:11px;color:var(--muted)">${item.matchList?.slice(0,4).map(m=>m.term).join(', ')||''}</div>
+    </div>
+  `).join('') || '<div style="padding:10px;font-size:13px;color:var(--muted)">No history yet</div>';
+
+  const rh = document.getElementById('reportHistoryList');
+  if(rh) rh.innerHTML = h.innerHTML;
+}
+
+function loadHistory(i){
+  const r = scanHistory[i];
+  if(!r) return;
+  lastReport = r;
+  if(r.excerpt) document.getElementById('jobText').value = r.excerpt;
+  displayReport(r, 'analysisResult');
+  document.getElementById('lastScore').textContent = r.score + '%';
+  document.getElementById('lastVerdict').textContent = r.level;
+  document.getElementById('lastKW').textContent = r.matchCount;
+  switchTabById('jobTab');
+}
+
 function filterHistory(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  if(!q) { renderHistory(); return; }
-  const filtered = history.filter(h=> {
-    const terms = h.matches.map(m=>m.term).join(' ').toLowerCase();
-    const meta = (h.suggestions.join(' ') + ' ' + h.level + ' ' + h.score).toLowerCase();
-    const chk = (terms + ' ' + meta + ' ' + (h.excerpt || '')).toLowerCase();
-    return chk.includes(q);
+  if(!q){ renderHistory(); return; }
+  const filtered = scanHistory.filter(h=>{
+    return (h.matchList?.map(m=>m.term).join(' ')||'').toLowerCase().includes(q)
+      || h.level.toLowerCase().includes(q)
+      || (h.excerpt||'').toLowerCase().includes(q);
   });
-  const hEl = document.getElementById('historyList');
-  hEl.innerHTML = filtered.map(item=>`<div style="padding:8px;border-bottom:1px dashed #f0f6fb">
-    <div style="font-weight:800">${new Date(item.analyzed_at).toLocaleString()}</div>
-    <div style="font-size:13px;color:var(--muted)">${item.level} — ${item.score}% — ${item.matches.map(m=>m.term).slice(0,6).join(', ')}</div>
-  </div>`).join('');
+  document.getElementById('historyList').innerHTML = filtered.slice(0,30).map((item,i)=>`
+    <div class="hist-item">
+      <div class="hist-time">${new Date(item.analyzed_at).toLocaleString()}</div>
+      <div class="hist-info">${item.level} — ${item.score}%</div>
+    </div>
+  `).join('');
 }
-/* Safety tips modal */
-function openTips(){
-  alert("Safety tips:\n\n1) Never pay money for a job or interview.\n2) Ask for company domain email and cross-check company registration.\n3) Do video / in-person interview with hiring manager.\n4) Never share OTP/UPI PIN/PAN/Aadhaar images unnecessarily. Verify before sharing documents.\n5) Verify salary, reporting manager, and contract before accepting.\n6) If pressured to pay or send screenshots, stop and report.");
+
+function filterReportHistory(){
+  const q = document.getElementById('reportSearch').value.trim().toLowerCase();
+  const list = document.getElementById('reportHistoryList');
+  if(!list) return;
+  if(!q){ list.innerHTML = document.getElementById('historyList').innerHTML; return; }
+  const filtered = scanHistory.filter(h=>{
+    return (h.matchList?.map(m=>m.term).join(' ')||'').toLowerCase().includes(q)
+      || h.level.toLowerCase().includes(q)
+      || (h.excerpt||'').toLowerCase().includes(q);
+  });
+  list.innerHTML = filtered.slice(0,50).map(item=>`
+    <div class="hist-item">
+      <div class="hist-time">${new Date(item.analyzed_at).toLocaleString()}</div>
+      <div class="hist-info">${item.level} — ${item.score}% — ${item.matchCount} keywords</div>
+    </div>
+  `).join('') || '<div style="padding:10px;font-size:13px;color:var(--muted)">No matches</div>';
 }
-/* On load */
-buildKeywordPanel();
-renderHistory();
-document.getElementById('lastScore').textContent = '—';
-document.getElementById('lastVerdict').textContent = '—';
-  function quickSearch(platform){
-  const name = document.getElementById('companyName').value.trim();
-  if(!name){ alert('Enter a company name'); return; }
-  let url = '';
-  const query = encodeURIComponent(name);
-  switch(platform){
-    case 'google':
-      url = `https://www.google.com/search?q=${query}`;
-      break;
-    case 'linkedin':
-      url = `https://www.linkedin.com/search/results/companies/?keywords=${query}`;
-      break;
-    case 'indeed':
-      url = `https://www.indeed.com/companies/search?q=${query}`;
-      break;
-    case 'foundit':
-      url = `https://www.foundit.in/search?query=${query}`;
-      break;
-    case 'glassdoor':
-      url = `https://www.glassdoor.com/Reviews/company-reviews.htm?keyword=${query}`;
-      break;
+
+function clearHistory(){
+  if(!confirm('Clear all scan history?')) return;
+  scanHistory = [];
+  localStorage.removeItem('gysv_v3_history');
+  renderHistory();
+}
+
+function downloadHistory(){
+  dlJson(scanHistory, 'gysv-history');
+}
+
+/* ============================================================
+   EXAMPLES
+============================================================ */
+const EXAMPLES = [
+  `Urgent Vacancy — Customer Care Executive
+Dear Candidate,
+We are pleased to inform you that your profile has been selected for immediate joining at ABC Pvt Ltd.
+This is a Work From Home position with salary up to ₹45,000/month. No experience required. 100% selection guaranteed.
+IMPORTANT: To confirm your slot, kindly pay a one-time registration fee of ₹1,500 via UPI to paytm id 9876543210.
+After payment, send transaction screenshot to hr@gmail.com or WhatsApp 9876543210.
+Please do not delay as seats are limited. Act now — last date TODAY.
+Contact HR Priya on WhatsApp only.`,
+  `OFFER LETTER
+From: HR Department, InfoSoft Technologies
+To: [Candidate Name]
+Congratulations! You have been shortlisted for the post of Data Entry Operator.
+Salary: Not mentioned. CTC TBD.
+JOINING PROCESS: Candidates must pay a refundable security deposit of ₹3,000 via bank transfer to IFSC ABCD0001234, Account No: 9876543210987. Amount will be refunded after joining.
+Additionally, courier charges of ₹500 for sending offer letter documents must be paid to UPI ID hr.infosoft@paytm.
+Send PAN card photo, Aadhaar card photo, and bank passbook photo to placement@gmail.com.
+No office visit required. Selection confirmed via WhatsApp only.`,
+  `Hello! Congratulations 🎉 You have been SELECTED for Amazon Work From Home Job.
+Earn ₹800–₹1200 per day doing simple data entry tasks from your mobile.
+No experience needed. No interview. Immediate joining today!
+Initial training kit worth ₹499 must be paid before start.
+Send to GPay: 8765432109 or Paytm: 8765432109
+After payment WhatsApp us your transaction screenshot at 8765432109.
+LIMITED SEATS — Only 5 positions remaining. Reply NOW to secure your seat.`
+];
+
+const MONEY_EXAMPLES = [
+  `HDFC Bank Alert: Your account has been temporarily blocked due to incomplete KYC. Click here to verify: http://hdfc-kyc-update.in/verify. Provide your card number, CVV, and Aadhaar OTP to restore access immediately. Failure to update within 2 hours will result in permanent account suspension.`,
+  `Congratulations! You have been pre-approved for a Personal Loan of ₹5,00,000 at just 1.5% interest with no documents required. Pay a one-time processing fee of ₹2,000 to UPI ID: loanfast@paytm to activate your loan. Amount will be disbursed within 24 hours. Call our agent: 9876543210`,
+  `🚀 CRYPTO TRADING OPPORTUNITY! Join our AI trading bot group. Guaranteed 15% daily returns. Members earned ₹2.5 lakh in 3 days! Just invest ₹10,000 minimum via Bitcoin or USDT. Our SEBI-registered analyst will manage your portfolio. Join our Telegram: t.me/cryptoearns. Limited slots — join NOW!`
+];
+
+function pasteExample(i){
+  document.getElementById('jobText').value = EXAMPLES[i] || EXAMPLES[0];
+  updateHeatmap(document.getElementById('jobText').value);
+}
+
+function pasteMoneyExample(i){
+  document.getElementById('moneyText').value = MONEY_EXAMPLES[i] || MONEY_EXAMPLES[0];
+}
+
+/* ============================================================
+   DOWNLOADS
+============================================================ */
+function downloadLastReport(){
+  if(!lastReport){ alert('Run an analysis first'); return; }
+  dlJson(lastReport, 'gysv-report');
+}
+
+function downloadEvidence(){
+  const evData = {
+    platform: "GYSV Shield Pro v3",
+    generated_at: new Date().toISOString(),
+    complainant: {
+      name: document.getElementById('ev-name').value,
+      phone: document.getElementById('ev-phone').value,
+      bank: document.getElementById('ev-bank').value,
+      amount_lost: document.getElementById('ev-amount').value,
+      incident_date: document.getElementById('ev-date').value
+    },
+    suspect_contact: document.getElementById('ev-scammer').value,
+    last_scan: lastReport || null,
+    instruction: "Submit this JSON file along with screenshots as digital evidence to cybercrime.gov.in",
+    helpline: "1930"
+  };
+  dlJson(evData, 'gysv-evidence');
+}
+
+function downloadEvidenceTxt(){
+  const r = lastReport;
+  const txt = `GYSV SHIELD PRO — EVIDENCE REPORT
+Generated: ${new Date().toLocaleString()}
+Complainant: ${document.getElementById('ev-name').value||'N/A'}
+Phone: ${document.getElementById('ev-phone').value||'N/A'}
+Suspect Contact: ${document.getElementById('ev-scammer').value||'N/A'}
+Amount Lost: ₹${document.getElementById('ev-amount').value||'0'}
+Date of Incident: ${document.getElementById('ev-date').value||'N/A'}
+Bank/UPI: ${document.getElementById('ev-bank').value||'N/A'}
+
+${r ? `SCAN RESULTS:
+Risk Score: ${r.score}%
+Risk Level: ${r.level}
+Keywords Matched: ${r.matchCount}
+Critical Hits: ${r.critHits}
+Money References: ${r.moneyMentions?.join(', ')||'None'}
+UPI IDs Found: ${r.upiIds?.join(', ')||'None'}
+
+MATCHED KEYWORDS:
+${r.matchList?.map(m=>`- [${m.severity.toUpperCase()}] ${m.term} (${m.count}x) — ${m.explanation}`).join('\n')||''}
+
+CONTENT ANALYZED:
+${r.excerpt||''}` : 'No scan data'}
+
+INSTRUCTIONS FOR REPORTING:
+1. Call 1930 (Cyber Crime Helpline) immediately
+2. Visit cybercrime.gov.in and file complaint
+3. Attach this file as digital evidence
+4. Call your bank to block/reverse transactions
+
+GYSV Shield Pro — Educational Fraud Detection Tool`;
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `gysv-evidence-${Date.now()}.txt`;
+  a.click();
+}
+
+function dlJson(data, name){
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function copyReport(){
+  if(!lastReport){ alert('Run an analysis first'); return; }
+  const t = `GYSV Report — ${lastReport.level} Risk — Score: ${lastReport.score}%\nKeywords: ${lastReport.matchCount} | Critical: ${lastReport.critHits}\nTop matches: ${lastReport.matchList?.slice(0,5).map(m=>m.term).join(', ')}\nSuggestions: ${lastReport.suggestions?.map(s=>s.text).join('; ')}`;
+  navigator.clipboard.writeText(t).then(()=>alert('Report summary copied to clipboard'));
+}
+
+/* ============================================================
+   UTILS
+============================================================ */
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function switchTab(e){
+  const btns = document.querySelectorAll('.tabbtn');
+  btns.forEach(b=>b.classList.remove('active'));
+  let tabId;
+  if(typeof e === 'string'){ tabId = e; }
+  else {
+    e.currentTarget.classList.add('active');
+    tabId = e.currentTarget.dataset.tab;
   }
-  window.open(url, '_blank');
+  document.querySelectorAll('[role="tabpanel"]').forEach(p=>{
+    p.style.display = p.id===tabId ? '' : 'none';
+  });
 }
+
+function switchTabById(id){
+  const btn = document.querySelector(`[data-tab="${id}"]`);
+  if(btn) { document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  document.querySelectorAll('[role="tabpanel"]').forEach(p=>{ p.style.display = p.id===id ? '' : 'none'; });
+}
+
+function clearInput(){
+  document.getElementById('jobText').value='';
+  document.getElementById('analysisResult').style.display='none';
+  document.getElementById('heatmapPanel').innerHTML='';
+}
+function clearOffer(){
+  document.getElementById('offerFile').value='';
+  document.getElementById('offerResult').style.display='none';
+}
+function openTips(){
+  alert("GYSV Safety Tips:\n\n1) NEVER pay money for a job. Not for registration, training, kit, or security.\n2) Verify company on MCA/GST portals BEFORE sharing any document.\n3) Official HR always emails from company domain (not gmail/yahoo).\n4) Insist on video interview with HR and verify on LinkedIn.\n5) NEVER share OTP, UPI PIN, CVV, or card number.\n6) Any guaranteed salary/selection = RED FLAG.\n7) If pressured urgently, that IS the scam.\n8) Report to 1930 or cybercrime.gov.in immediately.");
+}
+function openLink(url){ window.open(url,'_blank'); }
+function toggleDark(){ document.body.classList.toggle('dark-override'); }
+function quickSearch(p){
+  const name = document.getElementById('companyName').value.trim();
+  if(!name){ alert('Enter company name'); return; }
+  const q = encodeURIComponent(name);
+  const urls = {
+    google:`https://www.google.com/search?q=${q}+company`,
+    linkedin:`https://www.linkedin.com/search/results/companies/?keywords=${q}`,
+    indeed:`https://www.indeed.com/companies/search?q=${q}`,
+    foundit:`https://www.foundit.in/search?query=${q}`,
+    glassdoor:`https://www.glassdoor.com/Reviews/company-reviews.htm?keyword=${q}`,
+    mca:`https://www.mca.gov.in/mcafoportal/showCheckCompanyName.do`
+  };
+  openLink(urls[p]||urls.google);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+buildKeywordPanel();
+buildCatStats();
+renderHistory();
+document.getElementById('lastScore').textContent='—';
+document.getElementById('lastVerdict').textContent='—';
+document.getElementById('lastKW').textContent='—';
 </script>
 </body>
 </html>
